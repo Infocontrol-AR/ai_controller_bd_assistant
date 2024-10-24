@@ -1,0 +1,4 @@
+{
+  "proveedores": "CREATE TABLE proveedores (id_proveedores CHAR(36) NOT NULL, id_proveedores_datos INT NOT NULL COMMENT 'Sirve para agrupar los mismos proveedores', id_grupo_en_empresa CHAR(36) NULL COMMENT 'Campo para marcar proveedores que son los mismos pero trabajando para otra OL', cuit CHAR(20) NOT NULL, id_empresas CHAR(36) NOT NULL, activo_empresa TINYINT NOT NULL DEFAULT 1 COMMENT '0:no; 1:si; indica si activo para la empresa', nombre_proveedor VARCHAR(255) NOT NULL, nombre_contacto VARCHAR(255) NULL, telefono VARCHAR(255) NULL, direccion VARCHAR(255) NULL, email VARCHAR(255) NULL, fecha_alta DATETIME NULL, fecha_baja DATETIME NULL, razon_social VARCHAR(255) NULL, CONSTRAINT PK_proveedores PRIMARY KEY (id_proveedores))"
+  
+}

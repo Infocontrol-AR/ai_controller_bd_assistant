@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseService } from './database.service';
 import { BotModule } from './bot/bot.module';
-import { BotModule } from './bot/bot.module';
 
 @Module({
   imports: [
@@ -25,6 +24,3 @@ import { BotModule } from './bot/bot.module';
 })
 export class AppModule {}
 
-// todo
-// ! pasa esto a un .env
-// ? respertar estuctura de cartpetas y archivos

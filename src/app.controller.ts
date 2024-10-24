@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Logger, Param, Post, Query } from '@nestjs/common';
+import { Controller, Get, Logger, Param, Post, Query } from '@nestjs/common';
 import { AppService } from './app.service';
 import OpenAI from 'openai';
 import { DatabaseService } from './database.service';
-import { log } from 'console';
 
 @Controller()
 export class AppController {
@@ -58,13 +57,10 @@ export class AppController {
     return response.choices[0].message.content;
   }
 
-
-  
   @Post()
-  async create(@Body() query: any) {
+  async create(@Query() query: any) {
 
-    console.log(query);
-    return;
+    
 
     let sql = await this.useFineTunedModel(
       'ft:gpt-4o-mini-2024-07-18:personal::ALBi0URn',
