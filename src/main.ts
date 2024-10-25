@@ -12,7 +12,7 @@ async function bootstrap() {
   });
 
   app.enableCors();
-
   await app.listen(process.env.PORT ?? 3000);
+  console.log(`Servidor escuchando en el puerto: ${process.env.PORT ?? 3000}`);
 }
 bootstrap();
