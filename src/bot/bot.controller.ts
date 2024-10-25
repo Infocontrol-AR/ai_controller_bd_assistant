@@ -235,6 +235,12 @@ export class BotController {
 
         - **Sintácticamente correcta**: Se validará la estructura SQL para asegurar que cumpla con la sintaxis de MySQL.
         - **Lógica**: Se basará únicamente en el contexto de la estructura de las tablas proporcionadas, respetando tipos de datos y restricciones.
+        - **Limitada**: Se añadirá un límite de 10 resultados a todas las consultas para evitar demoras.
+        - **Subconsultas**: En caso de que se utilicen subconsultas, se limitará el resultado de la subconsulta a 1 para evitar el error \`ER_SUBQUERY_NO_1_ROW\`.
+        - **Uso de JOINs**: Si se requieren múltiples tablas, asegúrate de especificar claramente las columnas de unión y la condición de la unión. Utiliza alias para las tablas para mejorar la legibilidad.
+        - **Condiciones de filtrado**: Incluye siempre condiciones claras en la cláusula WHERE. Asegúrate de especificar qué columnas estás filtrando para evitar ambigüedades.
+        - **Ordenamiento**: Considera agregar una cláusula ORDER BY si es relevante para tu consulta, utilizando columnas adecuadas que proporcionen un sentido lógico al orden.
+        - **Funciones de agregación**: Si utilizas funciones como COUNT, SUM, AVG, etc., asegúrate de incluir GROUP BY donde sea necesario para evitar resultados incorrectos.
 
         ### Generación de la consulta
 
