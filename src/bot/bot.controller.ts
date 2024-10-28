@@ -230,9 +230,9 @@ export class BotController {
         - 'isPrimaryKey': Indica si la columna es una clave primaria.
         
         ### INSTRUCCIONES
-
+        
         Con base en la estructura proporcionada en formato JSON, cuando me proporciones una solicitud específica, generaré **una consulta SQL tipo SELECT** correspondiente. La consulta será:
-
+        
         - **Sintácticamente correcta**: Se validará la estructura SQL para asegurar que cumpla con la sintaxis de MySQL.
         - **Lógica**: Se basará únicamente en el contexto de la estructura de las tablas proporcionadas, respetando tipos de datos y restricciones.
         - **Limitada**: Se añadirá un límite de 10 resultados a todas las consultas para evitar demoras.
@@ -241,12 +241,13 @@ export class BotController {
         - **Condiciones de filtrado**: Incluye siempre condiciones claras en la cláusula WHERE. Asegúrate de especificar qué columnas estás filtrando para evitar ambigüedades.
         - **Ordenamiento**: Considera agregar una cláusula ORDER BY si es relevante para tu consulta, utilizando columnas adecuadas que proporcionen un sentido lógico al orden.
         - **Funciones de agregación**: Si utilizas funciones como COUNT, SUM, AVG, etc., asegúrate de incluir GROUP BY donde sea necesario para evitar resultados incorrectos.
-
+        - **Selección de columnas**: Siempre selecciona al menos cinco columnas relevantes y lógicas acorde a la solicitud del usuario.
+        
         ### Generación de la consulta
-
+        
         **Retornaré solo la consulta SQL** sin ninguna otra información adicional, comentarios, o explicaciones. Si tu solicitud está fuera del contexto proporcionado o no tiene sentido, responderé exclusivamente con el número **0**. 
-
-        Asegúrate de que tu solicitud esté claramente formulada para que pueda interpretarla correctamente. Por favor, proporciona tu solicitud para generar la consulta SQL.
+        
+        Asegúrate de que tu solicitud esté claramente formulada para que pueda interpretarla correctamente. Si mencionas un nombre propio, usaré %% para reflejar que puede variar en su escritura. Por favor, proporciona tu solicitud para generar la consulta SQL.
         `;
       // console.log(systemContent);
 
@@ -256,23 +257,83 @@ export class BotController {
         systemContent,
       );
 
-      console.log(sqlResponseIa);
+      //console.log(sqlResponseIa);
 
       // return res.status(HttpStatus.OK).json(sqlResponseIa);
 
       const extractedSql =
         await this.queryService.extractAndSanitizeQuery(sqlResponseIa);
-      if (!extractedSql || extractedSql == '0') throw new Error('No se pudo obtener la query SQL. Verifique la logica de su consulta e intente nuevamente');
-
-      console.log(extractedSql);
+      if (!extractedSql || extractedSql == '0')
+        throw new Error(
+          'Verifique la logica de su consulta e intente nuevamente',
+        );
 
       const response = await this.databaseService.executeQuery(extractedSql);
 
-      console.log(response);
+      //console.log(response);
+
+      systemContent = `
+
+      ### JSON DE CONTEXTO
+      ${JSON.stringify(response)} 
+      
+      ### INSTRUCCIONES
+      
+      1. **Recibir entrada del usuario**: Procesa la solicitud del usuario, que puede incluir preguntas específicas sobre los datos.
+      2. **Buscar registros**: Examina el JSON de contexto y busca registros que se alineen con la solicitud del usuario.
+      3. **Generar respuesta**: Basándote únicamente en la solicitud, genera una respuesta amigable sin hacer mención a JSON, contexto o datos.
+         - Si la solicitud implica la búsqueda de datos específicos y hay coincidencias, presenta la información de manera clara y concisa. No añadas preguntas al final de la consulta ni solicites información adicional al usuario. Intenta utilizar toda la información del JSON de Contexto de manera logica para responder a la solicitud del Usuario.
+         - Si no hay coincidencias y el JSON de contexto está vacío, formula una respuesta amigable y dinámica como: "Parece que no hay ninguna empresa que se llame 'San Luis'." Adaptando la frase según la solicitud del usuario.
+      
+      ### Ejemplo de entrada y salida
+      
+      **Entrada del usuario**: "Quiero ver las empresas que tengan un documento cargado el día de hoy"
+      
+      **JSON de contexto**:
+      {
+        "empresas": [
+          {
+            "id_empresas": "1",
+            "nombre": "Empresa A",
+            "documento": "Documento 1",
+            "fecha_carga": "2024-10-25"
+          }
+        ]
+      }
+      
+      **Salida generada**: "La empresa que tiene un documento cargado hoy es: Empresa A."
+      
+      ---
+      
+      **Entrada del usuario**: "Hay alguna empresa que se llame San Luis"
+      
+      **JSON de contexto**: []
+      
+      **Salida generada**: "Parece que no hay ninguna empresa que se llame 'San Luis'."
+      
+      Por favor, proporciona la solicitud del usuario para generar la respuesta.
+      `;
+
+      //console.log(systemContent);
+
+      let processResponse = await this.botService.useGpt4ModelV2(
+        prompt,
+        model,
+        systemContent,
+      );
+
+      console.log("1: ", prompt);
+
+      console.log("2: ", extractedSql);
+
+      console.log("3: ", response);
+
+      console.log("4: ", processResponse.choices[0].message.content);
 
       return res.status(HttpStatus.OK).json({
         message: 'Success',
-        data: { prompt, sqlResponseIa: extractedSql, response },
+        responseIA: processResponse.choices[0].message.content,
+        responseSQL: response
       });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({
