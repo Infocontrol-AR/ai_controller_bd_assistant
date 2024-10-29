@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
+import { AppController } from './bot/controllers/app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DatabaseService } from './database.service';
-import { BotModule } from './bot/bot.module';
+import { DatabaseService } from './bot/services/database.service';
+import { BotModule } from './bot/modules/bot.module';
 
 @Module({
   imports: [

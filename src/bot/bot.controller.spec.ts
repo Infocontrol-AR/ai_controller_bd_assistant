@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BotController } from './bot.controller';
-import { BotService } from './bot.service';
+import { BotController } from './controllers/bot.controller';
+import { BotService } from '../bot/services/bot.service';
 
 describe('BotController', () => {
   let controller: BotController;

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { BotService } from './bot.service';
-import { BotController } from './bot.controller';
-import { DatabaseService } from 'src/database.service';
+import { BotService } from '../services/bot.service';
+import { BotController } from '../controllers/bot.controller';
+import { DatabaseService } from '../services/database.service';
 import { QueryModule } from './query.module'; 
 
 @Module({

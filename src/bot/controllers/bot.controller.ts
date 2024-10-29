@@ -9,10 +9,10 @@ import {
   Res,
   HttpStatus,
 } from '@nestjs/common';
-import { BotService } from './bot.service';
-import { QueryService } from './query.service';
-import { ChatBotDto } from './dto/chat-bot.dot';
-import { DatabaseService } from 'src/database.service';
+import { BotService } from '../services/bot.service';
+import { QueryService } from '../services/query.service';
+import { ChatBotDto } from '../dto/chat-bot.dot';
+import { DatabaseService } from '../services/database.service';
 
 @Controller('bot')
 export class BotController {
@@ -235,19 +235,22 @@ export class BotController {
         
         - **Sintácticamente correcta**: Se validará la estructura SQL para asegurar que cumpla con la sintaxis de MySQL.
         - **Lógica**: Se basará únicamente en el contexto de la estructura de las tablas proporcionadas, respetando tipos de datos y restricciones.
-        - **Limitada**: Se añadirá un límite de 10 resultados a todas las consultas para evitar demoras.
+        - **Limitada**: Intentare interpretar la consulta del usuario para saber cuantas filas desea obtener, si el usuario no es claro se añadirá un límite de 10 resultados a todas las consultas para evitar demoras.
         - **Subconsultas**: En caso de que se utilicen subconsultas, se limitará el resultado de la subconsulta a 1 para evitar el error \`ER_SUBQUERY_NO_1_ROW\`.
         - **Uso de JOINs**: Si se requieren múltiples tablas, asegúrate de especificar claramente las columnas de unión y la condición de la unión. Utiliza alias para las tablas para mejorar la legibilidad.
         - **Condiciones de filtrado**: Incluye siempre condiciones claras en la cláusula WHERE. Asegúrate de especificar qué columnas estás filtrando para evitar ambigüedades.
         - **Ordenamiento**: Considera agregar una cláusula ORDER BY si es relevante para tu consulta, utilizando columnas adecuadas que proporcionen un sentido lógico al orden.
         - **Funciones de agregación**: Si utilizas funciones como COUNT, SUM, AVG, etc., asegúrate de incluir GROUP BY donde sea necesario para evitar resultados incorrectos.
         - **Selección de columnas**: Siempre selecciona al menos cinco columnas relevantes y lógicas acorde a la solicitud del usuario.
-        
+        - **Uso de nombres propios**: Cuando el usuario mencione nombres propios (como empresa, contratista, nombre de documento, etc.), utilizaré LIKE para manejar variaciones en escritura, aplicando comodines '%' y '_' para localizar coincidencias aproximadas. Esto permitirá:
+          Encontrar coincidencias que comiencen, terminen o contengan el texto solicitado (LIKE '%nombre%').
+          Emplear '_' en combinaciones específicas, según la posición y cantidad de caracteres conocidos o requeridos en el nombre.
+          Ajustar el patrón para casos sensibles a mayúsculas/minúsculas (LIKE BINARY) o para excluir coincidencias con NOT LIKE, según el contexto.        
         ### Generación de la consulta
         
         **Retornaré solo la consulta SQL** sin ninguna otra información adicional, comentarios, o explicaciones. Si tu solicitud está fuera del contexto proporcionado o no tiene sentido, responderé exclusivamente con el número **0**. 
         
-        Asegúrate de que tu solicitud esté claramente formulada para que pueda interpretarla correctamente. Si mencionas un nombre propio, usaré %% para reflejar que puede variar en su escritura. Por favor, proporciona tu solicitud para generar la consulta SQL.
+        Asegúrate de que tu solicitud esté claramente formulada para que pueda interpretarla correctamente. Por favor, proporciona tu solicitud para generar la consulta SQL.
         `;
       // console.log(systemContent);
 
@@ -275,20 +278,34 @@ export class BotController {
       systemContent = `
 
       ### JSON DE CONTEXTO
-      ${JSON.stringify(response)} 
+      ${JSON.stringify(response)}
       
-      ### INSTRUCCIONES
+      ### INSTRUCCIONES DETALLADAS
       
-      1. **Recibir entrada del usuario**: Procesa la solicitud del usuario, que puede incluir preguntas específicas sobre los datos.
-      2. **Buscar registros**: Examina el JSON de contexto y busca registros que se alineen con la solicitud del usuario.
-      3. **Generar respuesta**: Basándote únicamente en la solicitud, genera una respuesta amigable sin hacer mención a JSON, contexto o datos.
-         - Si la solicitud implica la búsqueda de datos específicos y hay coincidencias, presenta la información de manera clara y concisa. No añadas preguntas al final de la consulta ni solicites información adicional al usuario. Intenta utilizar toda la información del JSON de Contexto de manera logica para responder a la solicitud del Usuario.
-         - Si no hay coincidencias y el JSON de contexto está vacío, formula una respuesta amigable y dinámica como: "Parece que no hay ninguna empresa que se llame 'San Luis'." Adaptando la frase según la solicitud del usuario.
+      1. **Recepción de la Entrada del Usuario**: 
+         - Aceptaré y analizaré cuidadosamente la solicitud del usuario. Esta puede incluir preguntas directas, solicitudes de datos específicos o búsquedas generales en el JSON de contexto.
       
-      ### Ejemplo de entrada y salida
-      
+      2. **Extracción y Búsqueda de Registros**: 
+         - Realizaré una búsqueda exhaustiva en el JSON de contexto para identificar registros que se alineen lógicamente con la solicitud.
+         - Me aseguraré de revisar todos los campos y elementos relevantes en cada objeto dentro del JSON, determinando qué datos son esenciales para ofrecer una respuesta precisa.
+
+      3. **Generación de Respuesta**:
+         - **SI EL JSON DE CONTEXTO NO ES IGUAL A "[]"**:
+            - Generaré una respuesta clara, directa y estructurada, interpretando la solicitud del usuario y utilizando los datos del JSON de contexto.
+            - En lo posible, formularé una respuesta robusta y completa, aprovechando todos los datos relevantes que respondan a la solicitud. Utilizaré la mayor cantidad de información contextual para ofrecer una respuesta útil, manteniendo un tono amigable y conciso.
+            - Evitaré cualquier mención al "JSON de contexto" o "datos de contexto" en la respuesta al usuario.
+            - Presentaré la información en un solo bloque de respuesta, asegurándome de que cada dato se integre de manera lógica y natural en la frase.
+            - Evitaré preguntas adicionales al usuario o solicitudes de información extra.
+
+         - **SI EL JSON DE CONTEXTO ES IGUAL A "[]"**:
+            - Solo responderé que no hay información disponible si el JSON está completamente vacío.
+            - Si hay datos relevantes pero no explícitos, generaré una respuesta adaptada a la consulta del usuario, interpretando la información del JSON de contexto. Por ejemplo: "Parece que no hay ninguna empresa registrada bajo el nombre 'San Luis'." solo se usará cuando el JSON de contexto esté vacío.
+            - Adecúo la estructura y el tono de la respuesta para que se sienta natural, abordando la solicitud original sin dar indicios de ausencia de información.
+
+      ### Ejemplos de Entrada y Salida
+
       **Entrada del usuario**: "Quiero ver las empresas que tengan un documento cargado el día de hoy"
-      
+
       **JSON de contexto**:
       {
         "empresas": [
@@ -300,21 +317,21 @@ export class BotController {
           }
         ]
       }
-      
-      **Salida generada**: "La empresa que tiene un documento cargado hoy es: Empresa A."
-      
-      ---
-      
-      **Entrada del usuario**: "Hay alguna empresa que se llame San Luis"
-      
-      **JSON de contexto**: []
-      
-      **Salida generada**: "Parece que no hay ninguna empresa que se llame 'San Luis'."
-      
-      Por favor, proporciona la solicitud del usuario para generar la respuesta.
-      `;
 
-      //console.log(systemContent);
+      **Salida generada**: "La empresa que tiene un documento cargado hoy es: Empresa A."
+
+      ---
+
+      **Entrada del usuario**: "Hay alguna empresa que se llame San Luis"
+
+      **JSON de contexto**: []
+
+      **Salida generada**: "Parece que no hay ninguna empresa que se llame 'San Luis.'"
+
+      Por favor, proporciona la solicitud del usuario para generar la respuesta.
+`;
+
+      // console.log('0: ', systemContent);
 
       let processResponse = await this.botService.useGpt4ModelV2(
         prompt,
@@ -322,18 +339,18 @@ export class BotController {
         systemContent,
       );
 
-      console.log("1: ", prompt);
+      console.log('1: ', prompt);
 
-      console.log("2: ", extractedSql);
+      console.log('2: ', extractedSql);
 
-      console.log("3: ", response);
+      console.log('3: ', response);
 
-      console.log("4: ", processResponse.choices[0].message.content);
+      console.log('4: ', processResponse.choices[0].message.content);
 
       return res.status(HttpStatus.OK).json({
         message: 'Success',
         responseIA: processResponse.choices[0].message.content,
-        responseSQL: response
+        responseSQL: response,
       });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({

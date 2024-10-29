@@ -5,8 +5,10 @@ import OpenAI from 'openai';
 export class BotService {
   public model = 'ft:gpt-4o-mini-2024-07-18:personal::ALBi0URn';
   private client = new OpenAI({
+    // apiKey:
+    //   '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',
     apiKey:
-      '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',
+      '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',
   });
 
   async useFineTunedModel(prompt: string) {

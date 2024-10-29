@@ -1,7 +1,7 @@
 import { Controller, Get, Logger, Param, Post, Query } from '@nestjs/common';
-import { AppService } from 'src/app.service';
+import { AppService } from '../../app.service';
 import OpenAI from 'openai';
-import { DatabaseService } from 'src/bot/services/database.service';
+import { DatabaseService } from '../services/database.service';
 
 @Controller()
 export class AppController {

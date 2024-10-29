@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { QueryService } from './query.service';
-import { DatabaseService } from 'src/database.service';
+import { QueryService } from '../services/query.service';
+import { DatabaseService } from 'src/bot/services/database.service';
 
 @Module({
   providers: [QueryService, DatabaseService],

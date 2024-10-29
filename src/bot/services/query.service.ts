@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/database.service';
+import { DatabaseService } from 'src/bot/services/database.service';
 
 @Injectable()
 export class QueryService {
@@ -1712,19 +1712,15 @@ export class QueryService {
   }
 
   private sanitizeQuery(query: string): string {
-    try {
-      query = query.replace(/```sql\n?/g, '').replace(/```/g, '');
+    query = query.replace(/```sql\n?/g, '').replace(/```/g, '');
 
-      query = query.replace(/--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-  
-      const allowedCharsRegex = /[^a-zA-Z0-9\s.,*()_=%'`"-]/g;
-  
-      const cleanedQuery = query.replace(allowedCharsRegex, '').trim();
-  
-      return cleanedQuery;
-    } catch (error) {
-      return error.message;
-    }
+    query = query.replace(/--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+
+    const allowedCharsRegex = /[^a-zA-Z0-9\s.,*()_=%'`"-]/g;
+
+    const cleanedQuery = query.replace(allowedCharsRegex, '').trim();
+
+    return cleanedQuery;
   }
 
   extractSqlQuery(text: string): string | null {
