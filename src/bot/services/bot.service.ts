@@ -68,27 +68,32 @@ export class BotService {
     prompt: string = 'Hola',
     model: string = 'gpt-4o',
     systemContent: string = 'Eres un chatbot actua como tal',
+    temperature: number = 0.8,
+    maxTokens: number = 1000,
     client: any = this.client,
-  ) {
+) {
     const response = await client.chat.completions.create({
-      model: model,
-      messages: [
-        {
-          role: 'system',
-          content: [
+        model: model,
+        messages: [
             {
-              type: 'text',
-              text: systemContent,
+                role: 'system',
+                content: [
+                    {
+                        type: 'text',
+                        text: systemContent,
+                    },
+                ],
             },
-          ],
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
+            {
+                role: 'user',
+                content: prompt,
+            },
+        ],
+        temperature: temperature,
+        max_tokens: maxTokens,
     });
 
     return response;
-  }
+}
+
 }

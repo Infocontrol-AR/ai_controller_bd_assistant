@@ -203,140 +203,114 @@ export class BotController {
       ],
     };
 
+    let sqlResponseIa;
+
+    let extractedSql;
+
+    let response;
+
+    let processResponse;
+
     try {
       const getTableStructure =
         await this.queryService.getTableStructure(tables);
 
-      systemContent = `
-        ### CONTEXTO:
-        **Estructura del JSON**
-        El contexto que se proporcionará está en formato JSON y representa la estructura de una tabla de MySQL. Cada objeto dentro de la lista representa una columna de la tabla con sus atributos. Aquí está la explicación de la estructura:
+      systemContent = `### CONTEXTO:
+
+        **Estructura de la Tabla (Formato JSON)**  
+        A continuación, recibiré un JSON que describe la estructura de una tabla MySQL, en la que cada objeto representa una columna y contiene los siguientes atributos:
         
-        **JSON**
         ${JSON.stringify(getTableStructure)}
         
-        **Descripción de los campos:**
-        - 'column': Nombre de la columna en la tabla.
-        - 'type': Tipo de datos que se almacenan en la columna.
-        - 'default': Valor por defecto que tendrá la columna si no se especifica otro.
-        - 'comment': Comentarios adicionales sobre el uso de la columna.
-        - 'notNull': Indica si la columna puede contener valores nulos.
-        - 'autoIncrement': Indica si el valor de esta columna se incrementa automáticamente.
-        - 'characterSet': Conjunto de caracteres utilizado para la columna.
-        - 'collation': Regla de comparación utilizada para la columna.
-        - 'isForeignKey': Indica si la columna es una clave foránea.
-        - 'referenced_table': Nombre de la tabla referenciada (si aplica).
-        - 'referenced_column': Nombre de la columna referenciada (si aplica).
-        - 'isPrimaryKey': Indica si la columna es una clave primaria.
+        **Atributos de las Columnas**
+        - 'column': Nombre de la columna.
+        - 'type': Tipo de dato.
+        - 'default': Valor por defecto.
+        - 'comment': Descripción de la columna.
+        - 'notNull': Restricción de no permitir valores nulos.
+        - 'autoIncrement': Indica si la columna se incrementará automáticamente.
+        - 'characterSet': Conjunto de caracteres utilizado.
+        - 'collation': Reglas de ordenación.
+        - 'isForeignKey': Indicador de clave foránea.
+        - 'referenced_table': Tabla referenciada.
+        - 'referenced_column': Columna referenciada.
+        - 'isPrimaryKey': Indicador de clave primaria.
         
         ### INSTRUCCIONES
         
-        Con base en la estructura proporcionada en formato JSON, cuando me proporciones una solicitud específica, generaré **una consulta SQL tipo SELECT** correspondiente. La consulta será:
+        Con base en este JSON, generaré una **consulta SQL SELECT** que cumplirá con las siguientes especificaciones:
         
-        - **Sintácticamente correcta**: Se validará la estructura SQL para asegurar que cumpla con la sintaxis de MySQL.
-        - **Lógica**: Se basará únicamente en el contexto de la estructura de las tablas proporcionadas, respetando tipos de datos y restricciones.
-        - **Limitada**: Intentare interpretar la consulta del usuario para saber cuantas filas desea obtener, si el usuario no es claro se añadirá un límite de 10 resultados a todas las consultas para evitar demoras.
-        - **Subconsultas**: En caso de que se utilicen subconsultas, se limitará el resultado de la subconsulta a 1 para evitar el error \`ER_SUBQUERY_NO_1_ROW\`.
-        - **Uso de JOINs**: Si se requieren múltiples tablas, asegúrate de especificar claramente las columnas de unión y la condición de la unión. Utiliza alias para las tablas para mejorar la legibilidad.
-        - **Condiciones de filtrado**: Incluye siempre condiciones claras en la cláusula WHERE. Asegúrate de especificar qué columnas estás filtrando para evitar ambigüedades.
-        - **Ordenamiento**: Considera agregar una cláusula ORDER BY si es relevante para tu consulta, utilizando columnas adecuadas que proporcionen un sentido lógico al orden.
-        - **Funciones de agregación**: Si utilizas funciones como COUNT, SUM, AVG, etc., asegúrate de incluir GROUP BY donde sea necesario para evitar resultados incorrectos.
-        - **Selección de columnas**: Siempre selecciona al menos cinco columnas relevantes y lógicas acorde a la solicitud del usuario.
-        - **Uso de nombres propios**: Cuando el usuario mencione nombres propios (como empresa, contratista, nombre de documento, etc.), utilizaré LIKE para manejar variaciones en escritura, aplicando comodines '%' y '_' para localizar coincidencias aproximadas. Esto permitirá:
-          Encontrar coincidencias que comiencen, terminen o contengan el texto solicitado (LIKE '%nombre%').
-          Emplear '_' en combinaciones específicas, según la posición y cantidad de caracteres conocidos o requeridos en el nombre.
-          Ajustar el patrón para casos sensibles a mayúsculas/minúsculas (LIKE BINARY) o para excluir coincidencias con NOT LIKE, según el contexto.        
-        ### Generación de la consulta
+        - **Sintaxis SQL**: Me aseguraré de que la consulta sea compatible con MySQL.
+        - **Estructura Lógica**: La consulta reflejará la estructura de la tabla, respetando tipos de datos y restricciones.
+        - **Límite de Resultados**: Si no se especifica un límite, la consulta devolverá solo 10 filas.
+        - **Límite en Subconsultas**: Limitaré el resultado a una fila en subconsultas para evitar errores.
+        - **Requisitos de JOIN**: Para múltiples tablas, incluiré al menos 5 columnas relacionadas y utilizaré alias para mejorar la legibilidad.
+        - **Filtrado**: Agregaré cláusulas WHERE relevantes para refinar los resultados según la solicitud.
+        - **Ordenamiento**: Usaré ORDER BY cuando sea adecuado, priorizando columnas lógicas para el orden.
+        - **Agregación**: Si se utilizan funciones como COUNT o SUM, incluiré un GROUP BY si es necesario.
+        - **Selección de Columnas**: Seleccionaré al menos cinco columnas relevantes; en caso de JOIN, incluiré las más lógicas.
+        - **Coincidencia de Texto**: Utilizaré 'LIKE' con comodines '%' para coincidencias aproximadas en nombres y palabras clave.
         
-        **Retornaré solo la consulta SQL** sin ninguna otra información adicional, comentarios, o explicaciones. Si tu solicitud está fuera del contexto proporcionado o no tiene sentido, responderé exclusivamente con el número **0**. 
+        ### GENERACIÓN DE CONSULTA
         
-        Asegúrate de que tu solicitud esté claramente formulada para que pueda interpretarla correctamente. Por favor, proporciona tu solicitud para generar la consulta SQL.
+        **Salida**: Solo entregaré la consulta SQL sin explicaciones adicionales ni comentarios. **Solo se permitirán consultas tipo SELECT**. Si la solicitud no es coherente, responderé con **0**.
+        
+        Asegúrate de que tu solicitud sea clara para una generación precisa de la consulta SQL.
         `;
+
       // console.log(systemContent);
 
-      let sqlResponseIa = await this.botService.useGpt4ModelV2(
+      sqlResponseIa = await this.botService.useGpt4ModelV2(
         prompt,
         model,
         systemContent,
+        0.12,
+        500
       );
 
       //console.log(sqlResponseIa);
 
       // return res.status(HttpStatus.OK).json(sqlResponseIa);
 
-      const extractedSql =
+      extractedSql =
         await this.queryService.extractAndSanitizeQuery(sqlResponseIa);
       if (!extractedSql || extractedSql == '0')
         throw new Error(
           'Verifique la logica de su consulta e intente nuevamente',
         );
 
-      const response = await this.databaseService.executeQuery(extractedSql);
+      response = await this.databaseService.executeQuery(extractedSql);
 
       //console.log(response);
 
-      systemContent = `
+      systemContent = `Eres un asistente amigable y eficiente. Cuando un usuario realiza una solicitud, primero verifica si el contexto proporcionado contiene información relevante en el JSON. 
 
-      ### JSON DE CONTEXTO
+      - **Si el JSON está vacío** (por ejemplo, "[]"), responde a la solicitud del usuario indicando de forma clara y amable que no hay registros disponibles o que no hay información para responder su pregunta.
+      - **Si el JSON contiene datos**, responde a la solicitud del usuario usando esta información, asegurándote de que el informe sea útil.
+      
+      Cuando el contexto tiene datos:
+      - Responde de manera clara y amigable, resaltando palabras o frases importantes con **negritas**.
+      - Interpreta el “estado” o “estado de documento” con las siguientes traducciones:
+        - **ESTADO 1**: INCOMPLETO
+        - **ESTADO 2**: RECHAZADO
+        - **ESTADO 3**: PENDIENTE
+        - **ESTADO 4**: APROBADO
+      - Si encuentras valores booleanos, reemplázalos por "SI" o "NO".
+      - Asegúrate de que la respuesta sea concisa y directa, presentando la información en un formato de párrafo.
+      
+      El contexto proporcionado es: 
       ${JSON.stringify(response)}
       
-      ### INSTRUCCIONES DETALLADAS
-      
-      1. **Recepción de la Entrada del Usuario**: 
-         - Aceptaré y analizaré cuidadosamente la solicitud del usuario. Esta puede incluir preguntas directas, solicitudes de datos específicos o búsquedas generales en el JSON de contexto.
-      
-      2. **Extracción y Búsqueda de Registros**: 
-         - Realizaré una búsqueda exhaustiva en el JSON de contexto para identificar registros que se alineen lógicamente con la solicitud.
-         - Me aseguraré de revisar todos los campos y elementos relevantes en cada objeto dentro del JSON, determinando qué datos son esenciales para ofrecer una respuesta precisa.
-
-      3. **Generación de Respuesta**:
-         - **SI EL JSON DE CONTEXTO NO ES IGUAL A "[]"**:
-            - Generaré una respuesta clara, directa y estructurada, interpretando la solicitud del usuario y utilizando los datos del JSON de contexto.
-            - En lo posible, formularé una respuesta robusta y completa, aprovechando todos los datos relevantes que respondan a la solicitud. Utilizaré la mayor cantidad de información contextual para ofrecer una respuesta útil, manteniendo un tono amigable y conciso.
-            - Evitaré cualquier mención al "JSON de contexto" o "datos de contexto" en la respuesta al usuario.
-            - Presentaré la información en un solo bloque de respuesta, asegurándome de que cada dato se integre de manera lógica y natural en la frase.
-            - Evitaré preguntas adicionales al usuario o solicitudes de información extra.
-
-         - **SI EL JSON DE CONTEXTO ES IGUAL A "[]"**:
-            - Solo responderé que no hay información disponible si el JSON está completamente vacío.
-            - Si hay datos relevantes pero no explícitos, generaré una respuesta adaptada a la consulta del usuario, interpretando la información del JSON de contexto. Por ejemplo: "Parece que no hay ninguna empresa registrada bajo el nombre 'San Luis'." solo se usará cuando el JSON de contexto esté vacío.
-            - Adecúo la estructura y el tono de la respuesta para que se sienta natural, abordando la solicitud original sin dar indicios de ausencia de información.
-
-      ### Ejemplos de Entrada y Salida
-
-      **Entrada del usuario**: "Quiero ver las empresas que tengan un documento cargado el día de hoy"
-
-      **JSON de contexto**:
-      {
-        "empresas": [
-          {
-            "id_empresas": "1",
-            "nombre": "Empresa A",
-            "documento": "Documento 1",
-            "fecha_carga": "2024-10-25"
-          }
-        ]
-      }
-
-      **Salida generada**: "La empresa que tiene un documento cargado hoy es: Empresa A."
-
-      ---
-
-      **Entrada del usuario**: "Hay alguna empresa que se llame San Luis"
-
-      **JSON de contexto**: []
-
-      **Salida generada**: "Parece que no hay ninguna empresa que se llame 'San Luis.'"
-
-      Por favor, proporciona la solicitud del usuario para generar la respuesta.
-`;
+      Recuerda que tu respuesta debe ser amigable y clara, sin mencionar en ningún momento la existencia de un JSON o contexto.
+      `;
 
       // console.log('0: ', systemContent);
 
-      let processResponse = await this.botService.useGpt4ModelV2(
+      processResponse = await this.botService.useGpt4ModelV2(
         prompt,
         model,
         systemContent,
+        0.8,
       );
 
       console.log('1: ', prompt);
@@ -350,12 +324,18 @@ export class BotController {
       return res.status(HttpStatus.OK).json({
         message: 'Success',
         responseIA: processResponse.choices[0].message.content,
+        querySQL: extractedSql,
         responseSQL: response,
       });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({
         message: 'Error',
-        error: error.message,
+        error: error?.message || 'Error no especificado',
+        responseIA:
+          processResponse?.choices?.[0]?.message?.content ||
+          'Verifique la logica de su consulta e intente nuevamente',
+        querySQL: extractedSql || 'Consulta SQL no disponible',
+        responseSQL: response || [],
       });
     }
   }
