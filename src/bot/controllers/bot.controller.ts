@@ -16,6 +16,8 @@ import { DatabaseService } from '../services/database.service';
 
 @Controller('bot')
 export class BotController {
+  private history: { role: string; content: any }[] = [];
+  private response: any[] = [];
   constructor(
     private readonly botService: BotService,
     private readonly queryService: QueryService,
@@ -139,56 +141,12 @@ export class BotController {
         'mes',
         'anio',
         'categoria',
-        'campo_extra1',
-        'campo_extra2',
-        'campo_extra3',
-        'campo_extra4',
-        'campo_extra5',
         'estado_baja',
         'tipo_baja',
         'motivo_baja',
-        'id_usuarios_revisa1',
-        'fecha_revision1',
-        'resultado_revision1',
-        'id_usuarios_revisa2',
-        'fecha_revision2',
-        'resultado_revision2',
-        'observacion_revision',
-        'observacion_interna',
         'fecha_hora_modifica',
-        'tarea_proveedor',
-        'riesgos_proveedor',
-        'rs_asistencia',
-        'rs_dias_falto',
-        'rs_horas_trabajadas',
-        'rs_sueldo_neto',
-        'rs_incluye_vacaciones',
-        'rs_control_descarga_dias',
-        'rs_km_recorridos',
-        'rs_km_50_recorridos',
-        'rs_km_100_recorridos',
-        'rs_horas_nocturnas',
-        'rs_50_horas',
-        'rs_100_horas',
-        'id_aptos_medicos_tipos',
-        'id_obras',
-        'obs_controlador',
-        'obs_controlador_fecha_hora',
-        'obs_controlador_id_usuarios',
-        'obs_contratista',
-        'rechazo_detalle_menor',
-        'se_pide',
-        'se_pide_obligatorio',
         'id_empresas',
-        'control_automatico_estado',
-        'fecha_cambio_estado',
-        'estado_proceso_aprob',
-        'notificacion_enviada',
         'fecha_rechazo',
-        'id_transaccion',
-        'can_controller_audit',
-        'status_api_iacontroller',
-        'status_api',
       ],
       documentos_tipos: [
         'id_documentos_tipos',
@@ -201,71 +159,124 @@ export class BotController {
         'mes',
         'anio',
       ],
+      empresas_grupos: [
+        'id_grupos',
+        'nombre',
+        'tipo_cliente',
+        'oc_modalidad_carga',
+      ],
     };
 
     let sqlResponseIa;
 
     let extractedSql;
 
-    let response;
-
     let processResponse;
+
+    let system;
+
+    let user;
+
+    let promptUser = {};
 
     try {
       const getTableStructure =
         await this.queryService.getTableStructure(tables);
 
+      // return res.status(HttpStatus.OK).json({
+      //   getTableStructure,
+      // });
+
+      promptUser = {
+        prompt: prompt,
+        contexto_adicional: this.response,
+      };
+
       systemContent = `### CONTEXTO:
 
-        **Estructura de la Tabla (Formato JSON)**  
-        A continuación, recibiré un JSON que describe la estructura de una tabla MySQL, en la que cada objeto representa una columna y contiene los siguientes atributos:
-        
-        ${JSON.stringify(getTableStructure)}
-        
-        **Atributos de las Columnas**
-        - 'column': Nombre de la columna.
-        - 'type': Tipo de dato.
-        - 'default': Valor por defecto.
-        - 'comment': Descripción de la columna.
-        - 'notNull': Restricción de no permitir valores nulos.
-        - 'autoIncrement': Indica si la columna se incrementará automáticamente.
-        - 'characterSet': Conjunto de caracteres utilizado.
-        - 'collation': Reglas de ordenación.
-        - 'isForeignKey': Indicador de clave foránea.
-        - 'referenced_table': Tabla referenciada.
-        - 'referenced_column': Columna referenciada.
-        - 'isPrimaryKey': Indicador de clave primaria.
-        
-        ### INSTRUCCIONES
-        
-        Con base en este JSON, generaré una **consulta SQL SELECT** que cumplirá con las siguientes especificaciones:
-        
-        - **Sintaxis SQL**: Me aseguraré de que la consulta sea compatible con MySQL.
-        - **Estructura Lógica**: La consulta reflejará la estructura de la tabla, respetando tipos de datos y restricciones.
-        - **Límite de Resultados**: Si no se especifica un límite, la consulta devolverá solo 10 filas.
-        - **Límite en Subconsultas**: Limitaré el resultado a una fila en subconsultas para evitar errores.
-        - **Requisitos de JOIN**: Para múltiples tablas, incluiré al menos 5 columnas relacionadas y utilizaré alias para mejorar la legibilidad.
-        - **Filtrado**: Agregaré cláusulas WHERE relevantes para refinar los resultados según la solicitud.
-        - **Ordenamiento**: Usaré ORDER BY cuando sea adecuado, priorizando columnas lógicas para el orden.
-        - **Agregación**: Si se utilizan funciones como COUNT o SUM, incluiré un GROUP BY si es necesario.
-        - **Selección de Columnas**: Seleccionaré al menos cinco columnas relevantes; en caso de JOIN, incluiré las más lógicas.
-        - **Coincidencia de Texto**: Utilizaré 'LIKE' con comodines '%' para coincidencias aproximadas en nombres y palabras clave.
-        
-        ### GENERACIÓN DE CONSULTA
-        
-        **Salida**: Solo entregaré la consulta SQL sin explicaciones adicionales ni comentarios. **Solo se permitirán consultas tipo SELECT**. Si la solicitud no es coherente, responderé con **0**.
-        
-        Asegúrate de que tu solicitud sea clara para una generación precisa de la consulta SQL.
-        `;
+**ESTRUCTURA DE TABLA (JSON)**  
+La estructura incluye varias tablas y sus columnas, cada una representada como un objeto con los siguientes atributos:
+
+${JSON.stringify(getTableStructure)}
+
+**Atributos**:
+- 'column': Nombre de la columna.
+- 'type': Tipo de dato de la columna.
+- 'comment': Descripción de la columna.
+- 'isForeignKey': Indica si es una clave foránea.
+- 'referenced_table': Tabla referenciada si es clave foránea.
+- 'referenced_column': Columna de la tabla referenciada.
+
+**IMPORTANCIA DEL CONTEXTO ADICIONAL**  
+El usuario puede proporcionar contexto adicional que enriquecerá su solicitud y permitirá generar una consulta MySQL más precisa. Por favor, asegúrate de incluir información relevante que se utilizará para filtrar o detallar los criterios de búsqueda.
+
+Ejemplo de contexto adicional:
+
+{
+  "prompt": "A qué empresa pertenece?",
+  "contexto_adicional": [
+    {
+      "Nombre": "Juan",
+      "Apellido": "Pérez",
+      "id": 1
+    }
+  ]
+}
+
+Este contexto se interpretará junto con el prompt, mejorando la precisión de la consulta SQL generada.
+
+INSTRUCCIONES
+Generaré una consulta SQL SELECT basada en la estructura de las tablas y columnas, el contexto adicional y el prompt recibido. Cumpliré con lo siguiente:
+
+Sintaxis: Consulta compatible con MySQL.
+Lógica: Respetaré la estructura de la tabla y los tipos de datos.
+Límite: Devolveré hasta 10 filas si no se especifica lo contrario.
+Subconsultas: Limitaré a 1 fila para evitar errores o cargas innecesarias.
+JOINs: Incluiré al menos 5 columnas relevantes y alias para mejorar la legibilidad en consultas que involucren múltiples tablas.
+Filtrado: Aplicaré cláusulas WHERE relevantes usando el contexto adicional.
+Ordenamiento: Incluiré ORDER BY si la consulta lo requiere.
+Agregación: Usaré GROUP BY si el prompt lo necesita.
+Selección de Columnas: Elegiré un mínimo de 5 columnas de interés, considerando JOINs.
+Coincidencias Aproximadas: Utilizaré LIKE con '%' para coincidencias aproximadas si es pertinente.
+GENERACIÓN DE CONSULTA
+Basaré la consulta en el JSON de la estructura de las tablas y en el contexto adicional ("contexto_adicional") para aclarar ambigüedades y asegurar precisión.
+
+Si la solicitud del usuario es poco clara o incoherente, utilizaré el contexto adicional para construir una consulta MySQL adecuada.
+
+Salida: Produciré solo la consulta SQL, sin explicaciones ni comentarios. Solo generaré consultas de tipo SELECT y devolveré 0 si la solicitud no se relaciona con el contexto.
+
+Por favor, asegúrate de que tu solicitud sea clara para facilitar una generación precisa de la consulta SQL.`;
 
       // console.log(systemContent);
+
+      // console.log(history);
+
+      // return;
+
+      system = {
+        role: 'system',
+        content: [
+          {
+            type: 'text',
+            text: systemContent,
+          },
+        ],
+      };
+
+      user = {
+        role: 'user',
+        content: JSON.stringify(promptUser),
+      };
+
+      this.history.push(system, user);
 
       sqlResponseIa = await this.botService.useGpt4ModelV2(
         prompt,
         model,
         systemContent,
-        0.12,
-        500
+        0.7,
+        300,
+        this.history,
       );
 
       //console.log(sqlResponseIa);
@@ -279,7 +290,19 @@ export class BotController {
           'Verifique la logica de su consulta e intente nuevamente',
         );
 
-      response = await this.databaseService.executeQuery(extractedSql);
+      this.response = await this.databaseService.executeQuery(extractedSql);
+
+      // system = {
+      //   role: 'system',
+      //   content: [
+      //     {
+      //       type: 'text',
+      //       text: JSON.stringify(this.response),
+      //     },
+      //   ],
+      // };
+
+      // this.history.push(system);
 
       //console.log(response);
 
@@ -299,7 +322,7 @@ export class BotController {
       - Asegúrate de que la respuesta sea concisa y directa, presentando la información en un formato de párrafo.
       
       El contexto proporcionado es: 
-      ${JSON.stringify(response)}
+      ${JSON.stringify(this.response)}
       
       Recuerda que tu respuesta debe ser amigable y clara, sin mencionar en ningún momento la existencia de un JSON o contexto.
       `;
@@ -313,19 +336,21 @@ export class BotController {
         0.8,
       );
 
-      console.log('1: ', prompt);
+      // console.log('1: ', promptUser);
 
-      console.log('2: ', extractedSql);
+      // console.log('2: ', extractedSql);
 
-      console.log('3: ', response);
+      // console.log('3: ', this.response);
 
-      console.log('4: ', processResponse.choices[0].message.content);
+      // console.log('4: ', processResponse.choices[0].message.content);
 
       return res.status(HttpStatus.OK).json({
         message: 'Success',
         responseIA: processResponse.choices[0].message.content,
         querySQL: extractedSql,
-        responseSQL: response,
+        responseSQL: this.response,
+        history: this.history,
+        promptUser,
       });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({
@@ -335,7 +360,9 @@ export class BotController {
           processResponse?.choices?.[0]?.message?.content ||
           'Verifique la logica de su consulta e intente nuevamente',
         querySQL: extractedSql || 'Consulta SQL no disponible',
-        responseSQL: response || [],
+        responseSQL: this.response || [],
+        history: this.history || [],
+        promptUser: promptUser || [],
       });
     }
   }

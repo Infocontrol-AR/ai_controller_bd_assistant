@@ -70,30 +70,33 @@ export class BotService {
     systemContent: string = 'Eres un chatbot actua como tal',
     temperature: number = 0.8,
     maxTokens: number = 1000,
+    messages: any = null,
     client: any = this.client,
-) {
+  ) {
+    if (!messages) {
+      messages = [
+        {
+          role: 'system',
+          content: [
+            {
+              type: 'text',
+              text: systemContent,
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ];
+    }
     const response = await client.chat.completions.create({
-        model: model,
-        messages: [
-            {
-                role: 'system',
-                content: [
-                    {
-                        type: 'text',
-                        text: systemContent,
-                    },
-                ],
-            },
-            {
-                role: 'user',
-                content: prompt,
-            },
-        ],
-        temperature: temperature,
-        max_tokens: maxTokens,
+      model: model,
+      messages: messages,
+      temperature: temperature,
+      max_tokens: maxTokens,
     });
 
     return response;
-}
-
+  }
 }
