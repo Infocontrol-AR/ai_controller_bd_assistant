@@ -1,19 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/bot/services/database.service';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class QueryService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  cleanSQLQueryResponse(query: string) {
-    return query.replace(/```sql|```/g, '').trim();
-  }
-
   async getTableStructure(
     tables: Record<string, string[]>,
   ): Promise<Record<string, any[]>> {
-    const tableStructures: Record<string, any[]> = {};
-
     return {
       empresas: [
         {
@@ -666,6 +660,8 @@ export class QueryService {
       ],
     };
 
+    const tableStructures: Record<string, any[]> = {};
+
     for (const [table, columnsToShow] of Object.entries(tables)) {
       const columnQuery = `
         SELECT 
@@ -715,15 +711,13 @@ export class QueryService {
   ): any[] {
     const foreignKeyMap = new Map(
       foreignKeys.map(
-        ({ COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME }) => {
-          return [
-            COLUMN_NAME,
-            {
-              referenced_table: REFERENCED_TABLE_NAME,
-              referenced_column: REFERENCED_COLUMN_NAME,
-            },
-          ];
-        },
+        ({ COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME }) => [
+          COLUMN_NAME,
+          {
+            referenced_table: REFERENCED_TABLE_NAME,
+            referenced_column: REFERENCED_COLUMN_NAME,
+          },
+        ],
       ),
     );
 
@@ -739,7 +733,6 @@ export class QueryService {
           referenced_column: foreignKeyMap.get(COLUMN_NAME)?.referenced_column,
         };
 
-        // Eliminar campos con valor `null` o `comment` vacío
         Object.keys(columnData).forEach((key) => {
           if (
             columnData[key] === null ||
@@ -759,26 +752,14 @@ export class QueryService {
       throw new Error('Content not found in the input data');
     }
 
-    const sanitizedQuery = this.sanitizeQuery(content);
-    return sanitizedQuery;
+    return this.sanitizeQuery(content);
   }
 
   private sanitizeQuery(query: string): string {
     query = query.replace(/```sql\n?/g, '').replace(/```/g, '');
-
     query = query.replace(/--.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-
     const allowedCharsRegex = /[^a-zA-Z0-9\s.,*()_=%'`"-]/g;
 
-    const cleanedQuery = query.replace(allowedCharsRegex, '').trim();
-
-    return cleanedQuery;
-  }
-
-  extractSqlQuery(text: string): string | null {
-    const pattern = /```sql([\s\S]*?)```/;
-    const match = text.match(pattern);
-
-    return match ? match[1].trim() : null;
+    return query.replace(allowedCharsRegex, '').trim();
   }
 }
