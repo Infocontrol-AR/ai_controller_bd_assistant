@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { BotModule } from './bot/modules/chat.module';
+import { ChatModule } from './bot/modules/chat.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(BotModule, {
+  const app = await NestFactory.create(ChatModule, {
     cors: {
       origin: true,
       credentials: true,

@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { DatabaseService } from '../database/database.service';
+import { QueryService } from './query.service';
+import { DatabaseModule } from '../database/database.module'; // Asegúrate de importar DatabaseModule
 
 @Module({
-  imports: [],
-  providers: [DatabaseService], 
-  exports: [DatabaseService], // Para que otros módulos lo usen
+  imports: [DatabaseModule], // Importa DatabaseModule para tener acceso a DatabaseService
+  providers: [QueryService],
+  exports: [QueryService],
 })
 export class QueryModule {}

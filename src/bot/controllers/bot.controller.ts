@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ChatBotDto } from '../dto/chat-bot.dot';
 import { ChatService } from '../services/chat.service';
+import { error } from 'console';
 
 @Controller('bot')
 export class BotController {
@@ -22,10 +23,14 @@ export class BotController {
   async chat_v3(@Body() chatBotDto: ChatBotDto, @Res() res) {
     const { prompt } = chatBotDto;
 
+    if (!prompt || prompt == '') {
+      return res.status(HttpStatus.BAD_REQUEST).json({error: 'Debe enviar un Prompt para realizar la consulta'});
+    }
+
     let response;
 
     try {
-      response = this.chatService.chatV3(prompt);
+      response = await this.chatService.chatV3(prompt);
 
       return res.status(HttpStatus.OK).json(response);
     } catch (error) {
