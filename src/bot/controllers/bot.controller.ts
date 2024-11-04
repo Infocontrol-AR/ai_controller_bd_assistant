@@ -33,8 +33,8 @@ export class BotController {
       response = await this.chatService.chatV3(prompt);
 
       return res.status(HttpStatus.OK).json(response);
-    } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).json(response);
+    } catch (e) {
+      return res.status(HttpStatus.BAD_REQUEST).json({error: e.message});
     }
   }
 }
