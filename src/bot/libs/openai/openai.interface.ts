@@ -1,6 +1,7 @@
 export interface OpenAIMessage {
     role: 'system' | 'user' | 'assistant';
-    content: string;
+    bot: number;
+    content: any;
   }
   
   export interface OpenAIChatCompletionRequest {
@@ -17,7 +18,7 @@ export interface OpenAIMessage {
     model: string;
     choices: Array<{
       index: number;
-      message: OpenAIMessage;
+      message: any;
       finish_reason: string;
     }>;
   }
