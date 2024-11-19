@@ -119,23 +119,134 @@ export class ChatService {
     return userChats;
   }
 
-  public async getChatById(
-    id_chat: string,
-  ): Promise<{ history: any; }[]> {
+  public async getChatById(id_chat: string): Promise<{ history: any }[]> {
     const data = await this.loadData();
     const history = data
       .filter((conv) => conv.id_chat == id_chat)
       .map((conv) => ({
-        history: conv.history.filter(o => o.bot == 1 && o.label),
+        history: conv.history.filter((o) => o.bot == 1 && o.label),
       }));
 
     return history;
   }
 
+  public async deleteChatById(id_chat: string): Promise<{ delete: boolean }> {
+    try {
+      const data = await this.loadData();
+      const updatedData = data.filter((conv) => conv.id_chat !== id_chat);
+
+      await this.saveData(updatedData);
+      return { delete: true };
+    } catch (error) {
+      return { delete: false };
+    }
+  }
+
   public async chatV3(prompt: any, id_chat: any, id_user: any): Promise<any> {
     let systemContent = ``;
     let model = 'gpt-4o';
-    const tables = {};
+    const tables = {
+      documentos_aprobados: [
+        'id_documentos_aprobados',
+        'id_documentos',
+        'id_usuarios_carga',
+        'fecha_hora_creacion',
+        'id_documentos_tipos',
+        'tipo_entidad',
+        'id_entidad',
+        'fecha_hora_carga_documento',
+        'estado',
+        'nombre_archivo',
+      ],
+      empresas: [
+        'id_empresas',
+        'nombre',
+        'razon_social_cliente',
+        'cuit_cliente',
+        'activa',
+        'nacionalidad',
+        'id_grupos',
+        'periodo_inicio_proceso',
+        'codigo',
+        'fecha_hora_carga',
+        'eliminado',
+        'zendesk_chat',
+      ],
+      proveedores: [
+        'id_proveedores',
+        'cuit',
+        'id_empresas',
+        'activo_empresa',
+        'nombre_razon_social',
+        'nombre_comercial',
+        'domicilio_legal',
+        'email',
+      ],
+      empleados: [
+        'id_empleados',
+        'id_proveedores',
+        'apellido',
+        'nombre',
+        'dni',
+        'cuil',
+        'estado',
+        'anulado',
+        'eliminado',
+        'baja_afip',
+        'categoria_laboral',
+        'id_motivos_baja_afip',
+        'fecha_baja_afip',
+        'estado_doc_baja',
+        'estado',
+        'fecha_ingreso',
+        'estado_doc',
+        'sexo',
+        'fecha_nacimiento',
+      ],
+      documentos: [
+        'id',
+        'id_documentos',
+        'id_usuarios_carga',
+        'fecha_hora_creacion',
+        'id_documentos_tipos',
+        'id_documentos_reglas',
+        'tipo_entidad',
+        'modulo',
+        'id_entidad',
+        'estado',
+        'fecha_vencimiento',
+        'estado_doc',
+        'fecha_vencimiento_doc',
+        'nombre_archivo',
+        'fecha_inicio',
+        'mes',
+        'anio',
+        'categoria',
+        'estado_baja',
+        'tipo_baja',
+        'motivo_baja',
+        'fecha_hora_modifica',
+        'id_empresas',
+        'fecha_rechazo',
+      ],
+      documentos_tipos: [
+        'id_documentos_tipos',
+        'nombre',
+        'tipo',
+        'tipos_entidad_mostrar',
+        'fecha_vencimiento',
+        'nombre_archivo',
+        'fecha_inicio',
+        'mes',
+        'anio',
+      ],
+      empresas_grupos: [
+        'id_grupos',
+        'nombre',
+        'tipo_cliente',
+        'oc_modalidad_carga',
+      ],
+    };
     let sqlResponseIa;
     let extractedSql;
     let processResponse;
@@ -146,6 +257,7 @@ export class ChatService {
     let chatHistory;
 
     const getTableStructure = await this.queryService.getTableStructure(tables);
+
     const conversation = await this.getOrCreateConversation(
       id_user,
       prompt,
@@ -153,14 +265,14 @@ export class ChatService {
     );
     const currentChatId = conversation.id_chat;
 
-    systemContent = `
-    ESTRUCTURA DE TABLAS:
-    ${JSON.stringify(getTableStructure)}
-  
-    El usuario interactúa conmigo para realizar solicitudes, las cuales convertiré en consultas MariaDB basadas en la estructura de tablas. Puedo responder a repreguntas y utilizar el contexto de interacciones anteriores para generar nuevas consultas si es pertinente. 
-    Solo crearé consultas tipo SELECT, limitadas a un máximo de 5 columnas y 5 filas. Si el usuario menciona una empresa, empleado, contratista, grupo o cualquier nombre propio, usaré LIKE y % para buscar nombres similares. Solo devolveré la consulta MariaDB, sin comentarios ni información adicional.
-  `;
-  
+    systemContent = `Responderé en formato de chat generando consultas MariaDB SELECT robustas y completas, enriqueciendo la respuesta al incluir siempre al menos 5 columnas adicionales cuando sea relevante y utilizando contexto previo. Consideraciones clave: Clientes = Empresas, Contratistas = Proveedores; usaré alias con AS para nombres robustos y completos que me den contexto; empleado habilitado se define como 'eliminado' = 0 y 'baja_afip' = 0; la antigüedad del empleado es 'fecha_ingreso' distinto de "0000-00-00"; empresa habilitada es 'eliminado' = 0 y 'activa' = 1; estado del documento ('estado') se interpreta como 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado; la antigüedad del documento es 'fecha_hora_creacion'; la modalidad de empresa ('tipo_cliente') se interpreta como "integral" = 'directo' y "renting" = 'indirecto'; la nacionalidad de la empresa se representa en 'nacionalidad'. Generaré consultas SELECT limitadas a 10 columnas y 6 filas, usando LIKE con % para nombres específicos. SOLO RESPONDERE CON CONSULTAS MARIADB sin comentarios ni información adicional.`;
+    // NO MOSTRAR LAS ID, RELACION DE DOCUMENTOS Y SUS TABLAS, 100% dinamico con modelos los prompts, Armas Documentación, Implementar Seguridad
+    let systemC = {
+      role: 'system',
+      bot: 0,
+      content: `ESTRUCTURA DE TABLAS: ${JSON.stringify(getTableStructure)}`,
+    };
+
     system = {
       role: 'system',
       bot: 0,
@@ -173,14 +285,23 @@ export class ChatService {
     };
 
     await this.updateConversationHistory(id_user, currentChatId, [
+      systemC,
       system,
       user,
     ]);
 
     chatHistory = await this.loadData();
-    const bot0History = chatHistory.find(conv => conv.id_chat === currentChatId)?.history.filter(item => item.bot === 0) || [];
+    const bot0History =
+      chatHistory
+        .find((conv) => conv.id_chat === currentChatId)
+        ?.history.filter((item) => item.bot === 0) || [];
 
-    sqlResponseIa = await this.openAIService.useGpt4ModelV2(model, 0.8, 250, bot0History);
+    sqlResponseIa = await this.openAIService.useGpt4ModelV2(
+      model,
+      0.3,
+      250,
+      bot0History,
+    );
 
     extractedSql =
       await this.queryService.extractAndSanitizeQuery(sqlResponseIa);
@@ -209,24 +330,7 @@ export class ChatService {
       resultSQL,
     ]);
 
-    systemContent = `
-    Seré un asistente amigable y eficiente. Al recibir una solicitud, revisaré el contexto proporcionado.
-
-    - Si el contexto está vacío (por ejemplo, "[]"), diré amablemente que no hay registros disponibles.
-    - Si hay datos, usaré esa información para responder de manera útil.
-
-    Cuando el contexto tenga datos:
-    - Responderé de forma clara, resaltando palabras importantes con **negritas**.
-    - Interpretaré el “estado” así:
-      - **ESTADO 1**: INCOMPLETO
-      - **ESTADO 2**: RECHAZADO
-      - **ESTADO 3**: PENDIENTE
-      - **ESTADO 4**: APROBADO
-    - Cambiaré valores booleanos a "SI" o "NO".
-    - Mis respuestas serán concisas y directas, en formato de párrafo.
-
-    No mencionaré la existencia de un JSON o contexto en mis respuestas.
-    `;
+    systemContent = `SIN HACER MENCION DE LA EXISTENCIA DE UN CONTEXTO generare un informe extenso, detallado y completo (utilizando todo el contexto SIEMPRE) en formato de parrafo de respuesta con estilos como listas, saltos de linea y destacando en negrita con **Palabra importante**. Interpretaré los valores de "estado" del documento como: **ESTADO 1** = INCOMPLETO, **ESTADO 2** = RECHAZADO, **ESTADO 3** = PENDIENTE, **ESTADO 4** = APROBADO.`;
 
     system = {
       role: 'system',
@@ -237,7 +341,7 @@ export class ChatService {
     resultSQL = {
       role: 'system',
       bot: 1,
-      content: JSON.stringify(response),
+      content: `CONTEXTO: ${JSON.stringify(response)}`,
     };
 
     await this.updateConversationHistory(id_user, currentChatId, [
@@ -256,7 +360,10 @@ export class ChatService {
 
     chatHistory = await this.loadData();
 
-    const bot1History = chatHistory.find(conv => conv.id_chat === currentChatId)?.history.filter(item => item.bot === 1) || [];
+    const bot1History =
+      chatHistory
+        .find((conv) => conv.id_chat === currentChatId)
+        ?.history.filter((item) => item.bot === 1) || [];
 
     processResponse = await this.openAIService.useGpt4ModelV2(
       model,
@@ -287,7 +394,11 @@ export class ChatService {
       //   bot0: chatHistory.find(conv => conv.id_chat === currentChatId)?.history.filter(item => item.bot === 0) || [],
       //   bot1: chatHistory.find(conv => conv.id_chat === currentChatId)?.history.filter(item => item.bot === 1) || [],
       // },
-      history:  chatHistory.find(conv => conv.id_chat === currentChatId)?.history.filter(item => item.bot === 1 && item.label) || [],
+      fullHistory: chatHistory,
+      history:
+        chatHistory
+          .find((conv) => conv.id_chat === currentChatId)
+          ?.history.filter((item) => item.bot === 1 && item.label) || [],
       prompt,
       id_chat: currentChatId,
     };

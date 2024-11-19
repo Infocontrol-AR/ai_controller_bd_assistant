@@ -8,656 +8,434 @@ export class QueryService {
   async getTableStructure(
     tables: Record<string, string[]>,
   ): Promise<Record<string, any[]>> {
+
     return {
-      empresas: [
+      "empresas": [
         {
-          column: 'id_empresas',
-          type: 'char(36)',
-          isForeignKey: false,
+          "column": "id_empresas",
+          "type": "char(36)",
+          "isForeignKey": false
         },
         {
-          column: 'nombre',
-          type: 'varchar(200)',
-          isForeignKey: false,
+          "column": "nombre",
+          "type": "varchar(200)",
+          "isForeignKey": false
         },
         {
-          column: 'razon_social_cliente',
-          type: 'varchar(200)',
-          isForeignKey: false,
+          "column": "razon_social_cliente",
+          "type": "varchar(200)",
+          "isForeignKey": false
         },
         {
-          column: 'cuit_cliente',
-          type: 'char(200)',
-          isForeignKey: false,
+          "column": "cuit_cliente",
+          "type": "char(200)",
+          "isForeignKey": false
         },
         {
-          column: 'activa',
-          type: 'tinyint(1)',
-          comment: '0:no; 1:si; si esta usando el sistema',
-          isForeignKey: false,
+          "column": "activa",
+          "type": "tinyint(1)",
+          "comment": "0:no; 1:si; si esta usando el sistema",
+          "isForeignKey": false
         },
         {
-          column: 'nacionalidad',
-          type: "enum('argentina','chilena','bolivia','brasil','colombia','ecuador','paraguay','peru','uruguay','venezuela','canada','suecia','singapur','mexico')",
-          isForeignKey: false,
+          "column": "nacionalidad",
+          "type": "enum('argentina','chilena','bolivia','brasil','colombia','ecuador','paraguay','peru','uruguay','venezuela','canada','suecia','singapur','mexico')",
+          "isForeignKey": false
         },
         {
-          column: 'id_grupos',
-          type: 'char(36)',
-          comment: 'si pertenece a algun grupo',
-          isForeignKey: false,
+          "column": "id_grupos",
+          "type": "char(36)",
+          "comment": "si pertenece a algun grupo",
+          "isForeignKey": false
         },
         {
-          column: 'periodo_inicio_proceso',
-          type: 'date',
-          isForeignKey: false,
+          "column": "periodo_inicio_proceso",
+          "type": "date",
+          "isForeignKey": false
         },
         {
-          column: 'codigo',
-          type: 'varchar(150)',
-          isForeignKey: false,
+          "column": "codigo",
+          "type": "varchar(150)",
+          "isForeignKey": false
         },
         {
-          column: 'fecha_hora_carga',
-          type: 'timestamp',
-          isForeignKey: false,
+          "column": "fecha_hora_carga",
+          "type": "timestamp",
+          "isForeignKey": false
         },
         {
-          column: 'eliminado',
-          type: 'tinyint(1)',
-          comment: '0:no;1:si',
-          isForeignKey: false,
+          "column": "eliminado",
+          "type": "tinyint(1)",
+          "comment": "0:no;1:si",
+          "isForeignKey": false
         },
         {
-          column: 'zendesk_chat',
-          type: 'tinyint(1)',
-          isForeignKey: false,
-        },
+          "column": "zendesk_chat",
+          "type": "tinyint(1)",
+          "isForeignKey": false
+        }
       ],
-      proveedores: [
+      "proveedores": [
         {
-          column: 'id_proveedores',
-          type: 'char(36)',
-          isForeignKey: false,
+          "column": "id_proveedores",
+          "type": "char(36)",
+          "isForeignKey": false
         },
         {
-          column: 'cuit',
-          type: 'char(20)',
-          isForeignKey: false,
+          "column": "cuit",
+          "type": "char(20)",
+          "isForeignKey": false
         },
         {
-          column: 'id_empresas',
-          type: 'char(36)',
-          isForeignKey: true,
-          referenced_table: 'empresas',
-          referenced_column: 'id_empresas',
+          "column": "id_empresas",
+          "type": "char(36)",
+          "isForeignKey": true,
+          "referenced_table": "empresas",
+          "referenced_column": "id_empresas"
         },
         {
-          column: 'activo_empresa',
-          type: 'tinyint(1)',
-          comment: '0:no; 1:si; si esta activo para la empresa',
-          isForeignKey: false,
+          "column": "activo_empresa",
+          "type": "tinyint(1)",
+          "comment": "0:no; 1:si; si esta activo para la empresa",
+          "isForeignKey": false
         },
         {
-          column: 'nombre_razon_social',
-          type: 'varchar(255)',
-          isForeignKey: false,
+          "column": "nombre_razon_social",
+          "type": "varchar(255)",
+          "isForeignKey": false
         },
         {
-          column: 'nombre_comercial',
-          type: 'varchar(255)',
-          isForeignKey: false,
+          "column": "nombre_comercial",
+          "type": "varchar(255)",
+          "isForeignKey": false
         },
         {
-          column: 'domicilio_legal',
-          type: 'varchar(255)',
-          isForeignKey: false,
+          "column": "domicilio_legal",
+          "type": "varchar(255)",
+          "isForeignKey": false
         },
         {
-          column: 'email',
-          type: 'varchar(255)',
-          isForeignKey: false,
-        },
+          "column": "email",
+          "type": "varchar(255)",
+          "isForeignKey": false
+        }
       ],
-      empleados: [
+      "empleados": [
         {
-          column: 'id_empleados',
-          type: 'char(36)',
-          isForeignKey: false,
+          "column": "id_empleados",
+          "type": "char(36)",
+          "isForeignKey": false
         },
         {
-          column: 'id_proveedores',
-          type: 'char(36)',
-          isForeignKey: true,
-          referenced_table: 'proveedores',
-          referenced_column: 'id_proveedores',
+          "column": "id_proveedores",
+          "type": "char(36)",
+          "isForeignKey": true,
+          "referenced_table": "proveedores",
+          "referenced_column": "id_proveedores"
         },
         {
-          column: 'apellido',
-          type: 'varchar(50)',
-          isForeignKey: false,
+          "column": "apellido",
+          "type": "varchar(50)",
+          "isForeignKey": false
         },
         {
-          column: 'nombre',
-          type: 'varchar(50)',
-          isForeignKey: false,
+          "column": "nombre",
+          "type": "varchar(50)",
+          "isForeignKey": false
         },
         {
-          column: 'dni',
-          type: 'char(20)',
-          isForeignKey: false,
+          "column": "dni",
+          "type": "char(20)",
+          "isForeignKey": false
         },
         {
-          column: 'cuil',
-          type: 'char(20)',
-          isForeignKey: false,
+          "column": "cuil",
+          "type": "char(20)",
+          "isForeignKey": false
         },
         {
-          column: 'estado',
-          type: 'bigint(1)',
-          comment: 'ver tabla estados',
-          isForeignKey: false,
+          "column": "fecha_ingreso",
+          "type": "date",
+          "isForeignKey": false
         },
         {
-          column: 'anulado',
-          type: 'bigint(1)',
-          comment: '0:no;1:si',
-          isForeignKey: false,
+          "column": "categoria_laboral",
+          "type": "varchar(255)",
+          "isForeignKey": false
         },
         {
-          column: 'eliminado',
-          type: 'tinyint(1)',
-          comment: '0:no; 1:si; indica si fue eliminado',
-          isForeignKey: false,
+          "column": "estado",
+          "type": "bigint(1)",
+          "comment": "ver tabla estados",
+          "isForeignKey": false
         },
         {
-          column: 'baja_afip',
-          type: 'tinyint(1)',
-          comment: '0:no;1:si; indica si se dio de baja definitiva',
-          isForeignKey: false,
+          "column": "estado_doc",
+          "type": "bigint(1)",
+          "comment": "ver tabla estados",
+          "isForeignKey": false
         },
         {
-          column: 'id_motivos_baja_afip',
-          type: 'int(1)',
-          isForeignKey: false,
+          "column": "anulado",
+          "type": "bigint(1)",
+          "comment": "0:no;1:si",
+          "isForeignKey": false
         },
         {
-          column: 'fecha_baja_afip',
-          type: 'date',
-          comment: 'para calcular las 48hs ',
-          isForeignKey: false,
+          "column": "eliminado",
+          "type": "tinyint(1)",
+          "comment": "0:no; 1:si; indica si fue eliminado",
+          "isForeignKey": false
         },
         {
-          column: 'estado_doc_baja',
-          type: 'bigint(1)',
-          comment:
-            'campo que indica el estado de los documentos que tiene que presentar cuando está de baja',
-          isForeignKey: false,
+          "column": "baja_afip",
+          "type": "tinyint(1)",
+          "comment": "0:no;1:si; indica si se dio de baja definitiva",
+          "isForeignKey": false
         },
         {
-          column: 'sexo',
-          type: 'bigint(1)',
-          comment: '1:M;2:F',
-          isForeignKey: false,
+          "column": "id_motivos_baja_afip",
+          "type": "int(1)",
+          "isForeignKey": false
         },
         {
-          column: 'fecha_nacimiento',
-          type: 'date',
-          isForeignKey: false,
+          "column": "fecha_baja_afip",
+          "type": "date",
+          "comment": "para calcular las 48hs ",
+          "isForeignKey": false
         },
+        {
+          "column": "estado_doc_baja",
+          "type": "bigint(1)",
+          "comment": "campo que indica el estado de los documentos que tiene que presentar cuando está de baja",
+          "isForeignKey": false
+        },
+        {
+          "column": "sexo",
+          "type": "bigint(1)",
+          "comment": "1:M;2:F",
+          "isForeignKey": false
+        },
+        {
+          "column": "fecha_nacimiento",
+          "type": "date",
+          "isForeignKey": false
+        }
       ],
-      documentos: [
+      "documentos": [
         {
-          column: 'id',
-          type: 'int(1)',
-          isForeignKey: false,
+          "column": "id",
+          "type": "int(1)",
+          "isForeignKey": false
         },
         {
-          column: 'id_documentos',
-          type: 'char(36)',
-          isForeignKey: false,
+          "column": "id_documentos",
+          "type": "char(36)",
+          "isForeignKey": false
         },
         {
-          column: 'id_usuarios_carga',
-          type: 'char(36)',
-          isForeignKey: true,
-          referenced_table: 'usu_usuarios',
-          referenced_column: 'id_usuarios',
+          "column": "id_usuarios_carga",
+          "type": "char(36)",
+          "isForeignKey": true,
+          "referenced_table": "usu_usuarios",
+          "referenced_column": "id_usuarios"
         },
         {
-          column: 'fecha_hora_creacion',
-          type: 'timestamp',
-          isForeignKey: false,
+          "column": "fecha_hora_creacion",
+          "type": "timestamp",
+          "isForeignKey": false
         },
         {
-          column: 'id_documentos_tipos',
-          type: 'char(36)',
-          isForeignKey: true,
-          referenced_table: 'documentos_tipos',
-          referenced_column: 'id_documentos_tipos',
+          "column": "id_documentos_tipos",
+          "type": "char(36)",
+          "isForeignKey": true,
+          "referenced_table": "documentos_tipos",
+          "referenced_column": "id_documentos_tipos"
         },
         {
-          column: 'id_documentos_reglas',
-          type: 'int(1)',
-          comment:
-            'id de la regla bajo la cual actualmente se pide un documento',
-          isForeignKey: true,
-          referenced_table: 'documentos_reglas',
-          referenced_column: 'id_documentos_reglas',
+          "column": "id_documentos_reglas",
+          "type": "int(1)",
+          "comment": "id de la regla bajo la cual actualmente se pide un documento",
+          "isForeignKey": true,
+          "referenced_table": "documentos_reglas",
+          "referenced_column": "id_documentos_reglas"
         },
         {
-          column: 'tipo_entidad',
-          type: "enum('empleado','vehiculo','proveedor','socio','planes_pago','ordenes_compra')",
-          isForeignKey: false,
+          "column": "tipo_entidad",
+          "type": "enum('empleado','vehiculo','proveedor','socio','planes_pago','ordenes_compra')",
+          "isForeignKey": false
         },
         {
-          column: 'modulo',
-          type: "enum('datos_especificos','datos_generales','datos_impositivos','datos_laborales','socios','trabajadores','transporte_internacional','vehiculos','planes_pago','datos_hys','ordenes_compra')",
-          comment: 'usado para proveedores mas que nada',
-          isForeignKey: false,
+          "column": "modulo",
+          "type": "enum('datos_especificos','datos_generales','datos_impositivos','datos_laborales','socios','trabajadores','transporte_internacional','vehiculos','planes_pago','datos_hys','ordenes_compra')",
+          "comment": "usado para proveedores mas que nada",
+          "isForeignKey": false
         },
         {
-          column: 'id_entidad',
-          type: 'char(36)',
-          isForeignKey: false,
+          "column": "id_entidad",
+          "type": "char(36)",
+          "isForeignKey": false
         },
         {
-          column: 'estado',
-          type: 'bigint(1)',
-          comment: 'ver tabla estados',
-          isForeignKey: false,
+          "column": "estado",
+          "type": "bigint(1)",
+          "comment": "ver tabla estados",
+          "isForeignKey": false
         },
         {
-          column: 'fecha_vencimiento',
-          type: 'date',
-          isForeignKey: false,
+          "column": "fecha_vencimiento",
+          "type": "date",
+          "isForeignKey": false
         },
         {
-          column: 'estado_doc',
-          type: 'bigint(1)',
-          comment: 'guarda el estado del documento no aprobado',
-          isForeignKey: false,
+          "column": "estado_doc",
+          "type": "bigint(1)",
+          "comment": "guarda el estado del documento no aprobado",
+          "isForeignKey": false
         },
         {
-          column: 'fecha_vencimiento_doc',
-          type: 'date',
-          comment: 'guarda la fecha de vto del doc no aprobado',
-          isForeignKey: false,
+          "column": "fecha_vencimiento_doc",
+          "type": "date",
+          "comment": "guarda la fecha de vto del doc no aprobado",
+          "isForeignKey": false
         },
         {
-          column: 'nombre_archivo',
-          type: 'varchar(100)',
-          isForeignKey: false,
+          "column": "nombre_archivo",
+          "type": "varchar(100)",
+          "isForeignKey": false
         },
         {
-          column: 'fecha_inicio',
-          type: 'date',
-          isForeignKey: false,
+          "column": "fecha_inicio",
+          "type": "date",
+          "isForeignKey": false
         },
         {
-          column: 'mes',
-          type: 'int(1)',
-          isForeignKey: false,
+          "column": "mes",
+          "type": "int(1)",
+          "isForeignKey": false
         },
         {
-          column: 'anio',
-          type: 'int(1)',
-          isForeignKey: false,
+          "column": "anio",
+          "type": "int(1)",
+          "isForeignKey": false
         },
         {
-          column: 'categoria',
-          type: 'varchar(100)',
-          isForeignKey: false,
+          "column": "categoria",
+          "type": "varchar(100)",
+          "isForeignKey": false
         },
         {
-          column: 'campo_extra1',
-          type: 'varchar(250)',
-          isForeignKey: false,
+          "column": "estado_baja",
+          "type": "tinyint(1)",
+          "comment": "0:no;1:si indica si se dio la baja",
+          "isForeignKey": false
         },
         {
-          column: 'campo_extra2',
-          type: 'varchar(250)',
-          isForeignKey: false,
+          "column": "tipo_baja",
+          "type": "enum('automatica','usuario_proveedor','usuario_sistema')",
+          "comment": "quien da la baja",
+          "isForeignKey": false
         },
         {
-          column: 'campo_extra3',
-          type: 'varchar(250)',
-          isForeignKey: false,
+          "column": "motivo_baja",
+          "type": "varchar(255)",
+          "comment": "solo si no es automatica",
+          "isForeignKey": false
         },
         {
-          column: 'campo_extra4',
-          type: 'varchar(250)',
-          isForeignKey: false,
+          "column": "fecha_hora_modifica",
+          "type": "datetime",
+          "comment": "se actualiza por trigger",
+          "isForeignKey": false
         },
         {
-          column: 'campo_extra5',
-          type: 'varchar(250)',
-          isForeignKey: false,
+          "column": "id_empresas",
+          "type": "char(36)",
+          "isForeignKey": false
         },
         {
-          column: 'estado_baja',
-          type: 'tinyint(1)',
-          comment: '0:no;1:si indica si se dio la baja',
-          isForeignKey: false,
-        },
-        {
-          column: 'tipo_baja',
-          type: "enum('automatica','usuario_proveedor','usuario_sistema')",
-          comment: 'quien da la baja',
-          isForeignKey: false,
-        },
-        {
-          column: 'motivo_baja',
-          type: 'varchar(255)',
-          comment: 'solo si no es automatica',
-          isForeignKey: false,
-        },
-        {
-          column: 'id_usuarios_revisa1',
-          type: 'char(36)',
-          isForeignKey: true,
-          referenced_table: 'usu_usuarios',
-          referenced_column: 'id_usuarios',
-        },
-        {
-          column: 'fecha_revision1',
-          type: 'datetime',
-          isForeignKey: false,
-        },
-        {
-          column: 'resultado_revision1',
-          type: 'bigint(1)',
-          comment: '1,2,3:rechazado; 4:aprobado',
-          isForeignKey: false,
-        },
-        {
-          column: 'id_usuarios_revisa2',
-          type: 'char(36)',
-          isForeignKey: true,
-          referenced_table: 'usu_usuarios',
-          referenced_column: 'id_usuarios',
-        },
-        {
-          column: 'fecha_revision2',
-          type: 'datetime',
-          isForeignKey: false,
-        },
-        {
-          column: 'resultado_revision2',
-          type: 'bigint(1)',
-          comment: '1,2,3:rechazado; 4:aprobado',
-          isForeignKey: false,
-        },
-        {
-          column: 'observacion_revision',
-          type: 'varchar(500)',
-          isForeignKey: false,
-        },
-        {
-          column: 'observacion_interna',
-          type: 'varchar(500)',
-          isForeignKey: false,
-        },
-        {
-          column: 'fecha_hora_modifica',
-          type: 'datetime',
-          comment: 'se actualiza por trigger',
-          isForeignKey: false,
-        },
-        {
-          column: 'tarea_proveedor',
-          type: 'varchar(255)',
-          isForeignKey: false,
-        },
-        {
-          column: 'riesgos_proveedor',
-          type: 'varchar(255)',
-          comment: 'todos los ids de los riesgos del proveedor',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_asistencia',
-          type: 'tinyint(1)',
-          comment: 'para recibo de sueldo profundo',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_dias_falto',
-          type: 'bigint(20)',
-          comment: 'para recibo de sueldo profundo',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_horas_trabajadas',
-          type: 'int(1)',
-          comment: 'para recibo de sueldo profundo',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_sueldo_neto',
-          type: 'double',
-          comment: 'para recibo de sueldo profundo',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_incluye_vacaciones',
-          type: 'tinyint(1)',
-          comment: 'para recibo de sueldo profundo',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_control_descarga_dias',
-          type: 'int(1)',
-          comment: 'para recibo de sueldo profundo',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_km_recorridos',
-          type: 'int(1)',
-          comment: 'para recibo de sueldo profundo',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_km_50_recorridos',
-          type: 'int(1)',
-          comment: 'para recibo de sueldo profundo al 50%',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_km_100_recorridos',
-          type: 'int(1)',
-          comment: 'para recibo de sueldo profundo al 100%',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_horas_nocturnas',
-          type: 'int(1)',
-          comment: 'para recibo profundo, usado en convenio seguridad',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_50_horas',
-          type: 'int(1)',
-          comment: 'para recibo profundo, usado en uocra al 50%',
-          isForeignKey: false,
-        },
-        {
-          column: 'rs_100_horas',
-          type: 'int(1)',
-          comment: 'para recibo profundo, usado en uocra al 100%',
-          isForeignKey: false,
-        },
-        {
-          column: 'id_aptos_medicos_tipos',
-          type: 'int(11)',
-          isForeignKey: true,
-          referenced_table: 'aptos_medicos_tipos',
-          referenced_column: 'id_aptos_medicos_tipos',
-        },
-        {
-          column: 'id_obras',
-          type: 'char(36)',
-          isForeignKey: false,
-        },
-        {
-          column: 'obs_controlador',
-          type: 'text',
-          comment:
-            'si un doc pendiente no se debe controlar, en este campo se guarda la observación',
-          isForeignKey: false,
-        },
-        {
-          column: 'obs_controlador_fecha_hora',
-          type: 'datetime',
-          isForeignKey: false,
-        },
-        {
-          column: 'obs_controlador_id_usuarios',
-          type: 'char(36)',
-          isForeignKey: false,
-        },
-        {
-          column: 'obs_contratista',
-          type: 'text',
-          comment:
-            'campo para guardar las aclaraciones que quiera hacer la persona que carga un documento',
-          isForeignKey: false,
-        },
-        {
-          column: 'rechazo_detalle_menor',
-          type: 'int(1)',
-          comment:
-            '1: el doc ha sido rechazado por un detalle menor, 0: rechazo por detalle no menor',
-          isForeignKey: false,
-        },
-        {
-          column: 'se_pide',
-          type: 'int(1)',
-          comment:
-            'indica si el documento actualmente se le pide. 1:si; 0: no ',
-          isForeignKey: false,
-        },
-        {
-          column: 'se_pide_obligatorio',
-          type: 'int(1)',
-          comment:
-            'indica si el documento actualmente se le pide y es obligatorio. 1:si; 0: no',
-          isForeignKey: false,
-        },
-        {
-          column: 'id_empresas',
-          type: 'char(36)',
-          isForeignKey: false,
-        },
-        {
-          column: 'control_automatico_estado',
-          type: 'int(1)',
-          comment:
-            '0:no;1:procesando;2:rechazado;4:pre-aprobado;5:aprobado por api;6:rechazado por api',
-          isForeignKey: false,
-        },
-        {
-          column: 'fecha_cambio_estado',
-          type: 'date',
-          comment: 'guardo la fecha de cuando cambia el estado de el documento',
-          isForeignKey: false,
-        },
-        {
-          column: 'estado_proceso_aprob',
-          type: 'tinyint(1) unsigned',
-          comment:
-            '0:no;1:procesando;2:rechazado;4:pre-aprobado;5:aprobado por api;6:rechazado por api',
-          isForeignKey: false,
-        },
-        {
-          column: 'notificacion_enviada',
-          type: 'int(1)',
-          comment:
-            'Para Hemco Nicaragua - campo guarda estado de envio de notificacion para record de policia',
-          isForeignKey: false,
-        },
-        {
-          column: 'fecha_rechazo',
-          type: 'datetime',
-          isForeignKey: false,
-        },
-        {
-          column: 'id_transaccion',
-          type: 'char(36)',
-          isForeignKey: false,
-        },
-        {
-          column: 'can_controller_audit',
-          type: 'tinyint(1)',
-          isForeignKey: false,
-        },
-        {
-          column: 'status_api_iacontroller',
-          type: 'tinyint(4)',
-          comment: '1: Pendiente, 2: Levantado, 3: Rechazado, 4: Aprobado',
-          isForeignKey: false,
-        },
-        {
-          column: 'status_api',
-          type: 'tinyint(4)',
-          comment: '1: Pendiente, 2: Levantado, 3: Rechazado, 4: Aprobado',
-          isForeignKey: false,
-        },
+          "column": "fecha_rechazo",
+          "type": "datetime",
+          "isForeignKey": false
+        }
       ],
-      documentos_tipos: [
+      "documentos_tipos": [
         {
-          column: 'id_documentos_tipos',
-          type: 'char(36)',
-          isForeignKey: false,
+          "column": "id_documentos_tipos",
+          "type": "char(36)",
+          "isForeignKey": false
         },
         {
-          column: 'nombre',
-          type: 'varchar(200)',
-          isForeignKey: false,
+          "column": "nombre",
+          "type": "varchar(200)",
+          "isForeignKey": false
         },
         {
-          column: 'tipo',
-          type: "enum('general','laboral')",
-          comment: 'indica que tipo de documento es',
-          isForeignKey: false,
+          "column": "tipo",
+          "type": "enum('general','laboral')",
+          "comment": "indica que tipo de documento es",
+          "isForeignKey": false
         },
         {
-          column: 'tipos_entidad_mostrar',
-          type: 'varchar(100)',
-          comment: 'empleado,vehiculo,proveedor,socio,planes_pago',
-          isForeignKey: false,
+          "column": "tipos_entidad_mostrar",
+          "type": "varchar(100)",
+          "comment": "empleado,vehiculo,proveedor,socio,planes_pago",
+          "isForeignKey": false
         },
         {
-          column: 'fecha_vencimiento',
-          type: 'tinyint(1)',
-          comment: '0:no;1:si',
-          isForeignKey: false,
+          "column": "fecha_vencimiento",
+          "type": "tinyint(1)",
+          "comment": "0:no;1:si",
+          "isForeignKey": false
         },
         {
-          column: 'nombre_archivo',
-          type: 'tinyint(1)',
-          comment: '0:no;1:si',
-          isForeignKey: false,
+          "column": "nombre_archivo",
+          "type": "tinyint(1)",
+          "comment": "0:no;1:si",
+          "isForeignKey": false
         },
         {
-          column: 'fecha_inicio',
-          type: 'tinyint(1)',
-          comment: '0:no;1:si',
-          isForeignKey: false,
+          "column": "fecha_inicio",
+          "type": "tinyint(1)",
+          "comment": "0:no;1:si",
+          "isForeignKey": false
         },
         {
-          column: 'mes',
-          type: 'tinyint(1)',
-          comment: '0:no;1:si',
-          isForeignKey: false,
+          "column": "mes",
+          "type": "tinyint(1)",
+          "comment": "0:no;1:si",
+          "isForeignKey": false
         },
         {
-          column: 'anio',
-          type: 'tinyint(1)',
-          comment: '0:no;1:si',
-          isForeignKey: false,
-        },
+          "column": "anio",
+          "type": "tinyint(1)",
+          "comment": "0:no;1:si",
+          "isForeignKey": false
+        }
       ],
+      "empresas_grupos": [
+        {
+          "column": "id_grupos",
+          "type": "char(36)",
+          "isForeignKey": false
+        },
+        {
+          "column": "nombre",
+          "type": "varchar(50)",
+          "isForeignKey": false
+        },
+        {
+          "column": "tipo_cliente",
+          "type": "enum('directo','indirecto')",
+          "isForeignKey": false
+        },
+        {
+          "column": "oc_modalidad_carga",
+          "type": "enum('sap','sap_pre-carga','no-sap','no-sap_pre-carga')",
+          "comment": "Indica el tipo de carga que se podrá realizar para las OCs (Siempre tenrá prioridad el definido para empresas)",
+          "isForeignKey": false
+        }
+      ]
     };
 
     const tableStructures: Record<string, any[]> = {};
