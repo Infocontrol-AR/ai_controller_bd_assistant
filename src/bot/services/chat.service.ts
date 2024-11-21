@@ -146,17 +146,10 @@ export class ChatService {
     let systemContent = ``;
     let model = 'gpt-4o';
     const tables = {
-      documentos_aprobados: [
-        'id_documentos_aprobados',
+      documentos_rechazos: [
         'id_documentos',
-        'id_usuarios_carga',
-        'fecha_hora_creacion',
-        'id_documentos_tipos',
-        'tipo_entidad',
-        'id_entidad',
-        'fecha_hora_carga_documento',
-        'estado',
-        'nombre_archivo',
+        'fecha_rechazo',
+        'observacion_revision',
       ],
       empresas: [
         'id_empresas',
@@ -166,21 +159,19 @@ export class ChatService {
         'activa',
         'nacionalidad',
         'id_grupos',
-        'periodo_inicio_proceso',
-        'codigo',
         'fecha_hora_carga',
         'eliminado',
-        'zendesk_chat',
       ],
       proveedores: [
         'id_proveedores',
         'cuit',
         'id_empresas',
-        'activo_empresa',
         'nombre_razon_social',
         'nombre_comercial',
         'domicilio_legal',
         'email',
+        'nacionalidad',
+        'fecha_hora_carga',
       ],
       empleados: [
         'id_empleados',
@@ -189,63 +180,39 @@ export class ChatService {
         'nombre',
         'dni',
         'cuil',
+        'domicilio',
         'estado',
         'anulado',
         'eliminado',
         'baja_afip',
-        'categoria_laboral',
         'id_motivos_baja_afip',
         'fecha_baja_afip',
-        'estado_doc_baja',
         'estado',
         'fecha_ingreso',
-        'estado_doc',
         'sexo',
         'fecha_nacimiento',
       ],
       documentos: [
         'id',
         'id_documentos',
-        'id_usuarios_carga',
         'fecha_hora_creacion',
         'id_documentos_tipos',
-        'id_documentos_reglas',
         'tipo_entidad',
         'modulo',
+        'tipo_entidad',
         'id_entidad',
         'estado',
-        'fecha_vencimiento',
-        'estado_doc',
-        'fecha_vencimiento_doc',
-        'nombre_archivo',
-        'fecha_inicio',
-        'mes',
-        'anio',
-        'categoria',
-        'estado_baja',
-        'tipo_baja',
-        'motivo_baja',
         'fecha_hora_modifica',
         'id_empresas',
-        'fecha_rechazo',
       ],
       documentos_tipos: [
         'id_documentos_tipos',
         'nombre',
         'tipo',
-        'tipos_entidad_mostrar',
-        'fecha_vencimiento',
-        'nombre_archivo',
-        'fecha_inicio',
-        'mes',
-        'anio',
+        'ayuda',
+        'nacionalidad',
       ],
-      empresas_grupos: [
-        'id_grupos',
-        'nombre',
-        'tipo_cliente',
-        'oc_modalidad_carga',
-      ],
+      empresas_grupos: ['id_grupos', 'nombre', 'tipo_cliente'],
     };
     let sqlResponseIa;
     let extractedSql;
@@ -265,8 +232,28 @@ export class ChatService {
     );
     const currentChatId = conversation.id_chat;
 
-    systemContent = `Responderé en formato de chat generando consultas MariaDB SELECT robustas y completas, enriqueciendo la respuesta al incluir siempre al menos 5 columnas adicionales cuando sea relevante y utilizando contexto previo. Consideraciones clave: Clientes = Empresas, Contratistas = Proveedores; usaré alias con AS para nombres robustos y completos que me den contexto; empleado habilitado se define como 'eliminado' = 0 y 'baja_afip' = 0; la antigüedad del empleado es 'fecha_ingreso' distinto de "0000-00-00"; empresa habilitada es 'eliminado' = 0 y 'activa' = 1; estado del documento ('estado') se interpreta como 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado; la antigüedad del documento es 'fecha_hora_creacion'; la modalidad de empresa ('tipo_cliente') se interpreta como "integral" = 'directo' y "renting" = 'indirecto'; la nacionalidad de la empresa se representa en 'nacionalidad'. Generaré consultas SELECT limitadas a 10 columnas y 6 filas, usando LIKE con % para nombres específicos. SOLO RESPONDERE CON CONSULTAS MARIADB sin comentarios ni información adicional.`;
-    // NO MOSTRAR LAS ID, RELACION DE DOCUMENTOS Y SUS TABLAS, 100% dinamico con modelos los prompts, Armas Documentación, Implementar Seguridad
+    systemContent = `Generar consultas MariaDB tipo SELECT (mínimo 6 columnas, máximo 10 filas) utilizando la ESTRUCTURA DE TABLAS, sin comentarios ni nada adicional, tomando en cuenta:    Clientes = Empresas.
+    Contratistas = Proveedores.
+    Uso de LIKE y %% para nombres propios (empresas, empleados, proveedores, etc).
+    Alias: Siempre descriptivos.
+    Empleado habilitado: eliminado = 0 AND baja_afip = 0 AND anulado = 0.
+    Antigüedad: fecha_ingreso != '0000-00-00'.
+    Empresa habilitada: eliminado = 0 AND activa = 1.
+    Documentos relacionados por tipo_entidad y id_entidad:
+    empleado → tabla: empleados → clave: id_empleados = id_entidad.
+    vehiculo → tabla: vehiculos → clave: id_vehiculos = id_entidad.
+    proveedor → tabla: proveedores → clave: id_proveedores = id_entidad.
+    socio → tabla: socios → clave: id_socios = id_entidad.
+    Estados de documentos:
+    1 = Incompleto.
+    2 = Rechazado.
+    3 = Pendiente.
+    4 = Aprobado.
+    Motivo del Rechazo de un documento: buscar en documentos_rechazos.observacion_revision donde coincida con id_documentos.
+    Modalidad de empresa:
+    "integral" = directo.
+    "renting" = indirecto.`;
+
     let systemC = {
       role: 'system',
       bot: 0,
