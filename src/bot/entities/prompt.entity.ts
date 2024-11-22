@@ -1,0 +1,26 @@
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Model } from './model.entity';
+import { Context } from './context.entity';
+
+@Entity('prompt')
+export class Prompt {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @ManyToOne(() => Model, (model) => model.id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'id_model' })
+  model: Model;
+
+  @ManyToOne(() => Context, (context) => context.id, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'id_context' })
+  context: Context;
+
+  @Column({ type: 'text', comment: 'Contenido textual del prompt de IA' })
+  prompt_text: string;
+
+  @CreateDateColumn({ comment: 'Fecha y hora en que se creó el prompt' })
+  created_at: Date;
+
+  @UpdateDateColumn({ comment: 'Fecha y hora en que se actualizó el prompt' })
+  updated_at: Date;
+}
