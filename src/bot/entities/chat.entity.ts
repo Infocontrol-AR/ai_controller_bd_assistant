@@ -21,9 +21,4 @@ export class Chat {
   @JoinColumn({ name: 'setting_id' })
   setting: Setting;
 
-  @CreateDateColumn({ comment: 'Fecha y hora en que se creó el chat' })
-  created_at: Date;
-
-  @UpdateDateColumn({ comment: 'Fecha y hora en que se actualizó el chat' })
-  updated_at: Date;
 }

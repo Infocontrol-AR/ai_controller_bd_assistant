@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('user')
+@Entity('usuario')
 export class Usuario {
   @PrimaryGeneratedColumn()
   id: number;
@@ -16,13 +16,8 @@ export class Usuario {
 
   @Column({ type: 'varchar', length: 255, comment: 'Rol del usuario, por ejemplo, usuario, administrador' })
   role: string;
-
+  
   @Column({ type: 'int', comment: 'Referencia de clave externa a la empresa a la que pertenece el usuario' })
   id_empresas: number;
 
-  @CreateDateColumn({ comment: 'Fecha y hora en que se creó el usuario' })
-  created_at: Date;
-
-  @UpdateDateColumn({ comment: 'Fecha y hora en que se actualizó la información del usuario' })
-  updated_at: Date;
 }

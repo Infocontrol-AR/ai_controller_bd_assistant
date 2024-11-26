@@ -18,9 +18,4 @@ export class Prompt {
   @Column({ type: 'text', comment: 'Contenido textual del prompt de IA' })
   prompt_text: string;
 
-  @CreateDateColumn({ comment: 'Fecha y hora en que se creó el prompt' })
-  created_at: Date;
-
-  @UpdateDateColumn({ comment: 'Fecha y hora en que se actualizó el prompt' })
-  updated_at: Date;
 }

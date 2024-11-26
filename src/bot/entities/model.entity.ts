@@ -17,9 +17,4 @@ export class Model {
   @Column({ type: 'float', comment: 'Parámetro de temperatura para controlar la aleatoriedad de la salida' })
   temperature: number;
 
-  @CreateDateColumn({ comment: 'Fecha y hora en que se creó el modelo' })
-  created_at: Date;
-
-  @UpdateDateColumn({ comment: 'Fecha y hora en que se actualizó el modelo' })
-  updated_at: Date;
 }

@@ -8,9 +8,4 @@ export class Context {
   @Column({ type: 'text', comment: 'Información adicional de contexto para el prompt' })
   context_text: string;
 
-  @CreateDateColumn({ comment: 'Fecha y hora en que se creó el contexto' })
-  created_at: Date;
-
-  @UpdateDateColumn({ comment: 'Fecha y hora en que se actualizó el contexto' })
-  updated_at: Date;
 }

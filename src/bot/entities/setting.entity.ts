@@ -14,12 +14,4 @@ export class Setting {
   @ManyToOne(() => Prompt, (prompt) => prompt.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_prompt' })
   prompt: Prompt;
-
-  @CreateDateColumn({ comment: 'Fecha y hora en que se creó la configuración' })
-  created_at: Date;
-
-  @UpdateDateColumn({ comment: 'Fecha y hora en que se actualizó la configuración' })
-  updated_at: Date;
 }
-
-
