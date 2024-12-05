@@ -17,4 +17,6 @@ export class Model {
   @Column({ type: 'float', comment: 'Parámetro de temperatura para controlar la aleatoriedad de la salida' })
   temperature: number;
 
+  @Column({ type: 'varchar', length: 255, comment: 'Etiqueta descriptiva del modelo' })
+  label: string;
 }

@@ -13,10 +13,41 @@ export class CrudService {
     }
   }
 
-  async findAll(
+  async getTableColumns(
     tableName: string,
     useMemory: boolean = true,
-  ): Promise<any[]> {
+  ): Promise<string[]> {
+    if (useMemory) {
+      this.ensureMemoryTableExists(tableName);
+
+      console.log(this.memoryDB);
+
+      const memoryTable = this.memoryDB[tableName];
+
+      if (memoryTable.length === 0) {
+        return [];
+      }
+      return Object.keys(memoryTable[0]);
+    }
+
+    try {
+      const query = `
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_NAME = ? 
+          AND TABLE_SCHEMA = DATABASE();
+      `;
+      const result = await this.dbService.executeQuery(query, [tableName]);
+
+      return result.map((row: { COLUMN_NAME: string }) => row.COLUMN_NAME);
+    } catch (error) {
+      throw new Error(
+        `No se pudieron obtener las columnas de la tabla '${tableName}': ${error.message}`,
+      );
+    }
+  }
+
+  async findAll(tableName: string, useMemory: boolean = true): Promise<any[]> {
     if (useMemory) {
       this.ensureMemoryTableExists(tableName);
       return this.memoryDB[tableName];
@@ -53,25 +84,26 @@ export class CrudService {
       this.memoryDB[tableName].push(newRow);
       return newRow;
     }
-  
+
     const keys = Object.keys(data).join(', ');
     const values = Object.values(data);
     const placeholders = values.map(() => '?').join(', ');
-  
+
     const result = await this.dbService.executeQuery(
       `INSERT INTO ${tableName} (${keys}) VALUES (${placeholders})`,
       values,
     );
-  
-    const generatedId = result.insertId || (Array.isArray(result) && result[0]?.id);
-  
+
+    const generatedId =
+      result.insertId || (Array.isArray(result) && result[0]?.id);
+
     if (!generatedId) {
       throw new Error('No se pudo obtener el ID generado en la base de datos.');
     }
-  
+
     return { id: generatedId, ...data };
   }
-  
+
   async update(
     tableName: string,
     id: number,
@@ -82,7 +114,10 @@ export class CrudService {
       this.ensureMemoryTableExists(tableName);
       const index = this.memoryDB[tableName].findIndex((row) => row.id === id);
       if (index === -1) return null;
-      this.memoryDB[tableName][index] = { ...this.memoryDB[tableName][index], ...data };
+      this.memoryDB[tableName][index] = {
+        ...this.memoryDB[tableName][index],
+        ...data,
+      };
       return this.memoryDB[tableName][index];
     }
     const updates = Object.keys(data)
@@ -104,10 +139,14 @@ export class CrudService {
     if (useMemory) {
       this.ensureMemoryTableExists(tableName);
       const initialLength = this.memoryDB[tableName].length;
-      this.memoryDB[tableName] = this.memoryDB[tableName].filter((row) => row.id !== id);
+      this.memoryDB[tableName] = this.memoryDB[tableName].filter(
+        (row) => row.id !== id,
+      );
       return this.memoryDB[tableName].length < initialLength;
     }
-    await this.dbService.executeQuery(`DELETE FROM ${tableName} WHERE id = ?`, [id]);
+    await this.dbService.executeQuery(`DELETE FROM ${tableName} WHERE id = ?`, [
+      id,
+    ]);
     return true;
   }
 }

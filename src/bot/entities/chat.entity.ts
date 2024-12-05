@@ -14,8 +14,4 @@ export class Chat {
 
   @Column({ type: 'varchar', length: 255, comment: 'Estado del chat, por ejemplo, activo, archivado' })
   status: string;
-
-  @ManyToOne(() => Setting, (setting) => setting.id, { onDelete: 'CASCADE', nullable: true })
-  @JoinColumn({ name: 'setting_id' })
-  setting: Setting;
 }

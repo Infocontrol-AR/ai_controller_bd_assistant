@@ -7,10 +7,6 @@ export class Prompt {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Model, (model) => model.id, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_model' })
-  model: Model;
-
   @ManyToOne(() => Context, (context) => context.id, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'id_context' })
   context: Context;
