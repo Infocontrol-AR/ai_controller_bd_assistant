@@ -92,25 +92,38 @@ export class HistoryService {
     id_usuario: number,
   ): Promise<{ id_chat: string; label_chat: string }[]> {
     const chats = await this.crudService.findAll('chat', true);
-    return chats
-      .filter((chat) => chat.id_usuario === id_usuario)
-      .map((chat) => ({
-        id_chat: String(chat.id),
-        label_chat: chat.label_chat,
-      }));
+    const filteredChats = chats.filter(chat => parseInt(chat.id_usuario) == id_usuario);
+    const mappedChats = filteredChats.map(chat => ({
+      id_chat: chat.id,
+      label_chat: chat.label_chat,
+    }));
+    
+    // console.log(chats);
+    // console.log(filteredChats);
+    // console.log(mappedChats);
+    
+    return mappedChats;
   }
+  
 
   public async getChatById(id_chat: string): Promise<{ history: any }[]> {
     const chat = await this.crudService.findOne('chat', parseInt(id_chat, 10));
     if (!chat) {
       throw new Error(`Chat con id ${id_chat} no encontrado.`);
     }
+  
     const messages = await this.crudService.findAll('message', true);
-    return messages
-      .filter((msg) => msg.chat_id === chat.id && msg.bot === 1 && msg.label)
-      .map((msg) => ({ history: msg }));
-  }
+  
+    const filteredMessages = messages.filter((msg) => msg.chat_id == chat.id && msg.bot == 1 && msg.visible);
 
+    console.log(id_chat);
+    console.log(chat);
+    console.log(messages);
+    console.log(filteredMessages);
+  
+    return filteredMessages;
+  }
+  
   public async deleteChatById(id_chat: string): Promise<{ delete: boolean }> {
     const result = await this.crudService.delete('chat', parseInt(id_chat, 10));
     return { delete: result };
