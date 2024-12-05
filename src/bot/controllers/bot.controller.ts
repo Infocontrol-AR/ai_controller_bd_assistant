@@ -26,8 +26,9 @@ export class BotController {
     const { prompt } = chatBotDto;
     const { id_chat } = chatBotDto;
     const { id_user } = chatBotDto;
+    const { id_empresas } = chatBotDto;
 
-    console.log(id_chat, id_user);
+    // console.log(id_chat, id_user);
 
     if (!prompt || prompt == '') {
       return res
@@ -44,7 +45,7 @@ export class BotController {
     let response;
 
     try {
-      response = await this.chatService.chatV3(prompt, id_chat, id_user);
+      response = await this.chatService.chatV3(prompt, id_chat, id_user, id_empresas);
 
       return res.status(HttpStatus.OK).json(response);
     } catch (e) {

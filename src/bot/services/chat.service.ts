@@ -675,27 +675,7 @@ export class ChatService {
           operation: 'insert',
           values: [
             {
-              prompt_text: `Generar consultas MariaDB tipo SELECT (mínimo 6 columnas, máximo 10 filas) utilizando la ESTRUCTURA DE TABLAS, sin comentarios ni nada adicional, tomando en cuenta:    Clientes = Empresas.
-          Contratistas = Proveedores.
-          Uso de LIKE y %% para nombres propios (empresas, empleados, proveedores, etc).
-          Alias: Siempre descriptivos.
-          Empleado habilitado: eliminado = 0 AND baja_afip = 0 AND anulado = 0.
-          Antigüedad: fecha_ingreso != '0000-00-00'.
-          Empresa habilitada: eliminado = 0 AND activa = 1.
-          Documentos relacionados por tipo_entidad y id_entidad:
-          empleado → tabla: empleados → clave: id_empleados = id_entidad.
-          vehiculo → tabla: vehiculos → clave: id_vehiculos = id_entidad.
-          proveedor → tabla: proveedores → clave: id_proveedores = id_entidad.
-          socio → tabla: socios → clave: id_socios = id_entidad.
-          Estados de documentos:
-          1 = Incompleto.
-          2 = Rechazado.
-          3 = Pendiente.
-          4 = Aprobado.
-          Motivo del Rechazo de un documento: buscar en documentos_rechazos.observacion_revision donde coincida con id_documentos.
-          Modalidad de empresa:
-          "integral" = directo.
-          "renting" = indirecto.`,
+              prompt_text: `Generaré consultas MariaDB tipo SELECT (mínimo 6 columnas, máximo 10 filas) utilizando la ESTRUCTURA DE TABLAS, sin comentarios ni nada adicional, tomando en cuenta: todas las consultas deben filtrar los resultados usando el 'id_empresas' correspondiente al usuario para garantizar que solo vea información relacionada con su empresa. Utilizaré **LIKE** y **%%** para buscar nombres propios (empresas, empleados, proveedores, etc.), y me aseguraré de que se cumplan las condiciones de habilitación de empleados ('eliminado = 0 AND baja_afip = 0 AND anulado = 0'), antigüedad ('fecha_ingreso != '0000-00-00''), y empresa habilitada ('eliminado = 0 AND activa = 1'). Los documentos estarán relacionados por 'tipo_entidad' y 'id_entidad' según corresponda: empleados en **empleados** ('id_empleados'), vehículos en **vehiculos** ('id_vehiculos'), proveedores en **proveedores** ('id_proveedores'), y socios en **socios** ('id_socios'). Los estados de los documentos serán 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado, y el motivo de rechazo se obtendrá de **documentos_rechazos** ('observacion_revision'). Además, la modalidad de la empresa será "integral" para directo y "renting" para indirecto. Las consultas devolverán entre 6 y 10 columnas, sin acceder a datos de otras empresas.`,
               id_context: 1,
             },
           ],
@@ -790,6 +770,7 @@ export class ChatService {
     prompt: string,
     id_chat: number,
     id_user: number,
+    id_empresas: string
   ): Promise<any> {
     let systemContent = ``;
     let sqlResponseIa;
@@ -825,6 +806,12 @@ export class ChatService {
       content: setting1.context_text,
     };
 
+    let contextId_empresas = {
+      role: 'system',
+      bot: 0,
+      content: `ID_ EMPRESAS DE EL USUARIO ACTUAL: ${id_empresas}`,
+    }
+
     system = {
       role: 'system',
       bot: 0,
@@ -838,6 +825,7 @@ export class ChatService {
 
     await this.updateConversationHistory(id_user, currentChatId, [
       systemC,
+      contextId_empresas,
       system,
       user,
     ]);
