@@ -23,10 +23,18 @@ export class BotController {
     const { id_chat } = chatBotDto;
     const { id_user } = chatBotDto;
 
+    console.log(id_chat, id_user);
+
     if (!prompt || prompt == '') {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ error: 'Debe enviar un Prompt para realizar la consulta' });
+    }
+
+    if (!id_user || isNaN(id_user)) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'Debe enviar un Id de Usuario para realizar la consulta' });
     }
 
     let response;

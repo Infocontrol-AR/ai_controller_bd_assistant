@@ -15,7 +15,7 @@ export class CrudService {
 
   async findAll(
     tableName: string,
-    useMemory: boolean = false,
+    useMemory: boolean = true,
   ): Promise<any[]> {
     if (useMemory) {
       this.ensureMemoryTableExists(tableName);
@@ -27,7 +27,7 @@ export class CrudService {
   async findOne(
     tableName: string,
     id: number,
-    useMemory: boolean = false,
+    useMemory: boolean = true,
   ): Promise<any> {
     if (useMemory) {
       this.ensureMemoryTableExists(tableName);
@@ -42,7 +42,7 @@ export class CrudService {
   async create(
     tableName: string,
     data: Record<string, any>,
-    useMemory: boolean = false,
+    useMemory: boolean = true,
   ): Promise<any> {
     if (useMemory) {
       this.ensureMemoryTableExists(tableName);
@@ -53,21 +53,30 @@ export class CrudService {
       this.memoryDB[tableName].push(newRow);
       return newRow;
     }
+  
     const keys = Object.keys(data).join(', ');
     const values = Object.values(data);
     const placeholders = values.map(() => '?').join(', ');
-    await this.dbService.executeQuery(
+  
+    const result = await this.dbService.executeQuery(
       `INSERT INTO ${tableName} (${keys}) VALUES (${placeholders})`,
       values,
     );
-    return { id: 'Generated in DB', ...data };
+  
+    const generatedId = result.insertId || (Array.isArray(result) && result[0]?.id);
+  
+    if (!generatedId) {
+      throw new Error('No se pudo obtener el ID generado en la base de datos.');
+    }
+  
+    return { id: generatedId, ...data };
   }
-
+  
   async update(
     tableName: string,
     id: number,
     data: Record<string, any>,
-    useMemory: boolean = false,
+    useMemory: boolean = true,
   ): Promise<any> {
     if (useMemory) {
       this.ensureMemoryTableExists(tableName);
@@ -90,7 +99,7 @@ export class CrudService {
   async delete(
     tableName: string,
     id: number,
-    useMemory: boolean = false,
+    useMemory: boolean = true,
   ): Promise<boolean> {
     if (useMemory) {
       this.ensureMemoryTableExists(tableName);

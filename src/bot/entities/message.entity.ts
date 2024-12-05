@@ -24,4 +24,7 @@ export class Message {
 
   @Column({ type: 'text', nullable: true, comment: 'Contenido que debe usarse para actualizar el chat en el cliente' })
   onRefresh: string;
+
+  @Column({ type: 'boolean', default: true, comment: 'Indica si el mensaje es visible para el cliente' })
+  visible: boolean;
 }

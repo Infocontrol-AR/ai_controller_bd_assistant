@@ -46,9 +46,10 @@ export class ChatService {
 
   public async getOrCreateConversation(
     id_user: number,
-    prompt: any,
-    id_chat?: string,
+    prompt: string,
+    id_chat?: number,
   ): Promise<any> {
+    //console.log(id_chat, id_user, 3);
     return this.historyService.getOrCreateConversation(
       id_user,
       prompt,
@@ -83,7 +84,11 @@ export class ChatService {
     return this.historyService.deleteChatById(id_chat);
   }
 
-  public async chatV3(prompt: any, id_chat: any, id_user: any): Promise<any> {
+  public async chatV3(
+    prompt: string,
+    id_chat: number,
+    id_user: number,
+  ): Promise<any> {
     let systemContent = ``;
     let model = 'gpt-4o';
     const tables = {
@@ -171,7 +176,10 @@ export class ChatService {
       prompt,
       id_chat,
     );
-    const currentChatId = conversation.id_chat;
+
+    const currentChatId = conversation.id_chat || conversation.id;
+
+   console.log(currentChatId, conversation);
 
     systemContent = `Generar consultas MariaDB tipo SELECT (mínimo 6 columnas, máximo 10 filas) utilizando la ESTRUCTURA DE TABLAS, sin comentarios ni nada adicional, tomando en cuenta:    Clientes = Empresas.
     Contratistas = Proveedores.
@@ -218,17 +226,13 @@ export class ChatService {
       user,
     ]);
 
-    chatHistory = await this.historyService.loadData(currentChatId);
-    const bot0History =
-      chatHistory
-        .find((conv) => conv.id_chat === currentChatId)
-        ?.history.filter((item) => item.bot === 0) || [];
+    chatHistory = await this.historyService.loadData(currentChatId, 0);
 
     sqlResponseIa = await this.openAIService.useGpt4ModelV2(
       model,
       0.3,
       250,
-      bot0History,
+      chatHistory[0].history,
     );
 
     extractedSql =
@@ -258,8 +262,9 @@ export class ChatService {
       resultSQL,
     ]);
 
-    systemContent = `      SIN HACER MENCION DE LA EXISTENCIA DE UN CONTEXTO generare un informe extenso, detallado y completo (utilizando todo el contexto SIEMPRE) en formato de parrafo de respuesta con estilos como listas, saltos de linea y destacando en negrita con **Palabra importante**. Interpretaré los valores de "estado" del documento como: **ESTADO 1** = INCOMPLETO, **ESTADO 2** = RECHAZADO, **ESTADO 3** = PENDIENTE, **ESTADO 4** = APROBADO.
-`;
+   // console.log(currentChatId, conversation);
+
+    systemContent = `SIN HACER MENCION DE LA EXISTENCIA DE UN CONTEXTO generare un informe extenso, detallado y completo (utilizando todo el contexto SIEMPRE) en formato de parrafo de respuesta con estilos como listas, saltos de linea y destacando en negrita con **Palabra importante**. Interpretaré los valores de "estado" del documento como: **ESTADO 1** = INCOMPLETO, **ESTADO 2** = RECHAZADO, **ESTADO 3** = PENDIENTE, **ESTADO 4** = APROBADO.`;
 
     system = {
       role: 'system',
@@ -281,30 +286,27 @@ export class ChatService {
     user = {
       role: 'user',
       bot: 1,
-      label: true,
+      visible: true,
       content: prompt,
     };
 
     await this.updateConversationHistory(id_user, currentChatId, [user]);
 
-    chatHistory = await this.historyService.loadData(currentChatId);
+    chatHistory = await this.historyService.loadData(currentChatId, 1);
 
-    const bot1History =
-      chatHistory
-        .find((conv) => conv.id_chat === currentChatId)
-        ?.history.filter((item) => item.bot === 1) || [];
+   // console.log(currentChatId, conversation);
 
     processResponse = await this.openAIService.useGpt4ModelV2(
       model,
       0.6,
       null,
-      bot1History,
+      chatHistory[0].history,
     );
 
     system = {
       role: 'system',
       bot: 1,
-      label: true,
+      visible: true,
       responseSQL: response,
       onRefresh: prompt,
       content: processResponse.choices[0].message.content,
@@ -314,16 +316,14 @@ export class ChatService {
 
     chatHistory = await this.historyService.loadData(currentChatId);
 
+  // console.log(currentChatId, conversation);
+
     return {
       message: 'Success',
       responseIA: processResponse.choices[0].message.content,
       querySQL: extractedSql,
       responseSQL: response,
-      fullHistory: chatHistory,
-      history:
-        chatHistory
-          .find((conv) => conv.id_chat === currentChatId)
-          ?.history.filter((item) => item.bot === 1 && item.label) || [],
+      history: chatHistory[0].history,
       prompt,
       id_chat: currentChatId,
     };

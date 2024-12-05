@@ -11,8 +11,8 @@ export class DatabaseService {
       type: 'mysql',
       host: '181.119.169.180',
       port: 3306,
-      username: 'admin_remoto',
-      password: 'Y$47sdy70',
+      username: 'admin_desarrollo',
+      password: 'bo58d$46O',
       database: 'bd_infocontrol_desarrollo',
       synchronize: true,
       entities: ['dist/**/*.entity.js'],
@@ -42,9 +42,16 @@ export class DatabaseService {
     return useMemory ? this.memoryDataSource : this.realDataSource;
   }
 
-  async executeQuery(query: string, params?: any[], useMemory = false): Promise<any> {
+  async executeQuery(
+    query: string,
+    params?: any[],
+    useMemory = false,
+  ): Promise<any> {
     const dataSource = this.getDataSource(useMemory);
-    return await dataSource.query(query, params);
+
+    const result = await dataSource.query(query, params);
+
+    return result;
   }
 
   getRepository(entity: any, useMemory = false) {
