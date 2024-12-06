@@ -96,6 +96,7 @@ export class HistoryService {
     const mappedChats = filteredChats.map(chat => ({
       id_chat: chat.id,
       label_chat: chat.label_chat,
+      status: chat.status
     }));
     
     // console.log(chats);
@@ -115,11 +116,6 @@ export class HistoryService {
     const messages = await this.crudService.findAll('message', true);
   
     const filteredMessages = messages.filter((msg) => msg.chat_id == chat.id && msg.bot == 1 && msg.visible);
-
-    console.log(id_chat);
-    console.log(chat);
-    console.log(messages);
-    console.log(filteredMessages);
   
     return filteredMessages;
   }
