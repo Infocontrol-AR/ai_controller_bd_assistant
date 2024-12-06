@@ -8,6 +8,7 @@ import {
   Delete,
   Res,
   HttpStatus,
+  Put,
 } from '@nestjs/common';
 import { ChatBotDto } from '../dto/chat-bot.dot';
 import { ChatService } from '../services/chat.service';
@@ -45,7 +46,12 @@ export class BotController {
     let response;
 
     try {
-      response = await this.chatService.chatV3(prompt, id_chat, id_user, id_empresas);
+      response = await this.chatService.chatV3(
+        prompt,
+        id_chat,
+        id_user,
+        id_empresas,
+      );
 
       return res.status(HttpStatus.OK).json(response);
     } catch (e) {
@@ -73,6 +79,36 @@ export class BotController {
 
     try {
       response = await this.chatService.getChatsByUserId(id_user);
+
+      return res.status(HttpStatus.OK).json(response);
+    } catch (e) {
+      const errorDetails = {
+        message: e.message,
+        name: e.name || 'Error',
+        stack: e.stack || 'No stack trace available',
+        code: e.code || 'No code available',
+        statusCode: e.status || e.response?.status || 'N/A',
+        details: e.details || 'No additional details',
+        cause: e.cause || 'No inner cause available',
+        timestamp: new Date().toISOString(),
+      };
+
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        error: 'Error al procesar la solicitud',
+        details: errorDetails,
+      });
+    }
+  }
+
+  @Put('cambiar-estado')
+  async cambiar_estado(@Body() chatBotDto: ChatBotDto, @Res() res) {
+    const { id_chat } = chatBotDto;
+    const { status } = chatBotDto;
+
+    let response;
+
+    try {
+      response = await this.chatService.changeChatStatus(id_chat, status);
 
       return res.status(HttpStatus.OK).json(response);
     } catch (e) {

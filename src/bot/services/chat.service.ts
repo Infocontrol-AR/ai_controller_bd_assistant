@@ -153,6 +153,14 @@ export class ChatService {
     }
   }
 
+  public async changeChatStatus(id_chat, status) : Promise <any> {
+    
+    const context = await this.crudService.update('chat', id_chat, {status});
+
+    return context;
+
+  }
+
   private cleanResponse(response: any): any {
     if (response && response['0']) {
       return { ...response['0'], id: response.id };
