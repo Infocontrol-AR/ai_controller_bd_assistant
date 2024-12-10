@@ -29,7 +29,7 @@ export class HistoryService {
     id_chat: number,
     createNewConversation: (prompt: string) => Promise<any>,
   ): Promise<any> {
-   // console.log(id_chat, id_user, 4);
+    // console.log(id_chat, id_user, 4);
 
     let chat;
     if (id_chat) {
@@ -37,7 +37,7 @@ export class HistoryService {
       chat = await this.crudService.findOne('chat', id_chat);
     }
 
-   // console.log(chat);
+    // console.log(chat);
 
     if (!chat) {
       //console.log('nose 2');
@@ -48,6 +48,9 @@ export class HistoryService {
         id_usuario: id_user,
         label_chat: newConversation.label_chat,
         status: 'activo',
+        created_at: new Date(
+          new Date().getTime() - new Date().getTimezoneOffset() * 60000,
+        ),
       });
 
       //console.log(createdChat);
@@ -82,7 +85,10 @@ export class HistoryService {
         bot: message.bot,
         responseSQL: message.responseSQL || null,
         onRefresh: message.onRefresh || null,
-        visible: message.visible || false
+        visible: message.visible || false,
+        created_at: new Date(
+          new Date().getTime() - new Date().getTimezoneOffset() * 60000,
+        ),
       });
       //console.log('Mensaje insertado:', result);
     }
@@ -92,34 +98,38 @@ export class HistoryService {
     id_usuario: number,
   ): Promise<{ id_chat: string; label_chat: string }[]> {
     const chats = await this.crudService.findAll('chat', true);
-    const filteredChats = chats.filter(chat => parseInt(chat.id_usuario) == id_usuario);
-    const mappedChats = filteredChats.map(chat => ({
+    const filteredChats = chats.filter(
+      (chat) => parseInt(chat.id_usuario) == id_usuario,
+    );
+    const mappedChats = filteredChats.map((chat) => ({
       id_chat: chat.id,
       label_chat: chat.label_chat,
-      status: chat.status
+      status: chat.status,
+      created_at: chat.created_at,
     }));
-    
+
     // console.log(chats);
     // console.log(filteredChats);
     // console.log(mappedChats);
-    
+
     return mappedChats;
   }
-  
 
   public async getChatById(id_chat: string): Promise<{ history: any }[]> {
     const chat = await this.crudService.findOne('chat', parseInt(id_chat, 10));
     if (!chat) {
       throw new Error(`Chat con id ${id_chat} no encontrado.`);
     }
-  
+
     const messages = await this.crudService.findAll('message', true);
-  
-    const filteredMessages = messages.filter((msg) => msg.chat_id == chat.id && msg.bot == 1 && msg.visible);
-  
+
+    const filteredMessages = messages.filter(
+      (msg) => msg.chat_id == chat.id && msg.bot == 1 && msg.visible,
+    );
+
     return filteredMessages;
   }
-  
+
   public async deleteChatById(id_chat: string): Promise<{ delete: boolean }> {
     const result = await this.crudService.delete('chat', parseInt(id_chat, 10));
     return { delete: result };

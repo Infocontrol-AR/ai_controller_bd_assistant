@@ -162,7 +162,9 @@ export class BotController {
     let response;
 
     try {
-      response = await this.chatService.deleteChatById(id_chat);
+      // response = await this.chatService.deleteChatById(id_chat);
+
+      response = [];
 
       return res.status(HttpStatus.OK).json(response);
     } catch (e) {

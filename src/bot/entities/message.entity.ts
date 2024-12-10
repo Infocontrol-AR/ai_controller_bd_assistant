@@ -27,4 +27,11 @@ export class Message {
 
   @Column({ type: 'boolean', default: true, comment: 'Indica si el mensaje es visible para el cliente' })
   visible: boolean;
+
+  @Column({
+    type: 'datetime',
+    nullable: true,
+    comment: 'Fecha y hora personalizada del chat',
+  })
+  created_at: Date;
 }
