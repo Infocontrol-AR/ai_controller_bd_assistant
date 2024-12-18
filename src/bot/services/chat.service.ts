@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../libs/database/database.service';
 import { QueryService } from '../libs/query/query.service';
 import { OpenAIService } from '../libs/openai/openai.service';
+import { ComputerVisionService } from '../libs/computer-vision/computer-vision.service';
 import { HistoryService } from './history.service';
 import { CrudService } from './crud.service';
 
@@ -15,6 +16,7 @@ export class ChatService {
     private readonly openAIService: OpenAIService,
     private readonly historyService: HistoryService,
     private readonly crudService: CrudService,
+    private readonly computerVisionService: ComputerVisionService,
   ) {}
 
   async initialize(): Promise<void> {
@@ -153,12 +155,10 @@ export class ChatService {
     }
   }
 
-  public async changeChatStatus(id_chat, status) : Promise <any> {
-    
-    const context = await this.crudService.update('chat', id_chat, {status});
+  public async changeChatStatus(id_chat, status): Promise<any> {
+    const context = await this.crudService.update('chat', id_chat, { status });
 
     return context;
-
   }
 
   private cleanResponse(response: any): any {
@@ -774,11 +774,28 @@ export class ChatService {
     }
   }
 
+  private async base64OcrAzure(documents): Promise<any[]> {
+    const analyzedDocuments = await Promise.all(
+      documents.map(async (d) => {
+        const ocr = await this.computerVisionService.analyzeDocumentFromBase64(
+          d.base64,
+        );
+        return {
+          name: d.name,
+          content: ocr.content,
+        };
+      }),
+    );
+
+    return analyzedDocuments;
+  }
+
   public async chatV3(
     prompt: string,
     id_chat: number,
     id_user: number,
-    id_empresas: string
+    id_empresas: string,
+    documents: any[],
   ): Promise<any> {
     let systemContent = ``;
     let sqlResponseIa;
@@ -792,8 +809,6 @@ export class ChatService {
 
     await this.initialize();
 
-    const setting1 = await this.getSettings(1);
-
     // return setting1;
 
     const conversation = await this.getOrCreateConversation(
@@ -802,77 +817,87 @@ export class ChatService {
       id_chat,
     );
 
-    const currentChatId = conversation.id_chat || conversation.id;
+    if (documents.length === 0) {
+      const setting1 = await this.getSettings(1);
 
-   // console.log(currentChatId, conversation);
+      const currentChatId = conversation.id_chat || conversation.id;
 
-    systemContent = setting1.prompt_text;
+      // console.log(currentChatId, conversation);
 
-    let systemC = {
-      role: 'system',
-      bot: 0,
-      content: setting1.context_text,
-    };
+      let systemDocs = {
+        role: 'system',
+        bot: 2,
+        content: 'NO HAY DOCUMENTOS DE CONTEXTO',
+      };
 
-    let contextId_empresas = {
-      role: 'system',
-      bot: 0,
-      content: `ID_ EMPRESAS DE EL USUARIO ACTUAL: ${id_empresas}`,
-    }
+      systemContent = setting1.prompt_text;
 
-    system = {
-      role: 'system',
-      bot: 0,
-      content: systemContent,
-    };
-    user = {
-      role: 'user',
-      bot: 0,
-      content: prompt,
-    };
+      let systemC = {
+        role: 'system',
+        bot: 0,
+        content: setting1.context_text,
+      };
 
-    await this.updateConversationHistory(id_user, currentChatId, [
-      systemC,
-      contextId_empresas,
-      system,
-      user,
-    ]);
+      let contextId_empresas = {
+        role: 'system',
+        bot: 0,
+        content: `ID_ EMPRESAS DE EL USUARIO ACTUAL: ${id_empresas}`,
+      };
 
-    chatHistory = await this.historyService.loadData(currentChatId, 0);
+      system = {
+        role: 'system',
+        bot: 0,
+        content: systemContent,
+      };
+      user = {
+        role: 'user',
+        bot: 0,
+        content: prompt,
+      };
 
-    sqlResponseIa = await this.openAIService.useGpt4ModelV2(
-      setting1.model.model_name,
-      setting1.model.temperature,
-      setting1.model.max_tokens,
-      chatHistory[0].history,
-    );
+      await this.updateConversationHistory(id_user, currentChatId, [
+        systemC,
+        contextId_empresas,
+        system,
+        user,
+      ]);
 
-    extractedSql =
-      await this.queryService.extractAndSanitizeQuery(sqlResponseIa);
-    if (!extractedSql) {
-      throw new Error(
-        'Verifique la logica de su consulta e intente nuevamente',
+      chatHistory = await this.historyService.loadData(currentChatId, 0);
+
+      sqlResponseIa = await this.openAIService.useGpt4ModelV2(
+        setting1.model.model_name,
+        setting1.model.temperature,
+        setting1.model.max_tokens,
+        chatHistory[0].history,
       );
+
+      extractedSql =
+        await this.queryService.extractAndSanitizeQuery(sqlResponseIa);
+      if (!extractedSql) {
+        throw new Error(
+          'Verifique la logica de su consulta e intente nuevamente',
+        );
+      }
+
+      response = await this.databaseService.executeQuery(extractedSql);
+
+      system = {
+        role: 'system',
+        bot: 0,
+        content: sqlResponseIa.choices[0].message.content,
+      };
+
+      resultSQL = {
+        role: 'system',
+        bot: 0,
+        content: JSON.stringify(response),
+      };
+
+      await this.updateConversationHistory(id_user, currentChatId, [
+        system,
+        resultSQL,
+      ]);
     }
-
-    response = await this.databaseService.executeQuery(extractedSql);
-
-    system = {
-      role: 'system',
-      bot: 0,
-      content: sqlResponseIa.choices[0].message.content,
-    };
-
-    resultSQL = {
-      role: 'system',
-      bot: 0,
-      content: JSON.stringify(response),
-    };
-
-    await this.updateConversationHistory(id_user, currentChatId, [
-      system,
-      resultSQL,
-    ]);
 
     //// console.log(currentChatId, conversation);
 
@@ -886,11 +911,16 @@ export class ChatService {
       content: systemContent,
     };
 
-    resultSQL = {
-      role: 'system',
-      bot: 1,
-      content: `CONTEXTO: ${JSON.stringify(response)}`,
-    };
+    if (documents.length !== 0) {
+      const result = await this.base64OcrAzure(documents);
+
+      let context = '';
+      result.forEach((doc) => {
+        context += `DOCUMENTO NOMBRE: ${doc.name}. \n CONTENIDO: ${doc.content} \n \n`;
+      });
+
+      resultSQL = context;
+    }
 
     await this.updateConversationHistory(id_user, currentChatId, [
       system,

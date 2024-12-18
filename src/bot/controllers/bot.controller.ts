@@ -28,6 +28,7 @@ export class BotController {
     const { id_chat } = chatBotDto;
     const { id_user } = chatBotDto;
     const { id_empresas } = chatBotDto;
+    const { documents } = chatBotDto;
 
     // console.log(id_chat, id_user);
 
@@ -51,6 +52,7 @@ export class BotController {
         id_chat,
         id_user,
         id_empresas,
+        documents
       );
 
       return res.status(HttpStatus.OK).json(response);
