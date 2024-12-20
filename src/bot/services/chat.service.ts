@@ -810,8 +810,6 @@ export class ChatService {
 
     await this.initialize();
 
-    // return setting1;
-
     const conversation = await this.getOrCreateConversation(
       id_user,
       prompt,
@@ -822,14 +820,6 @@ export class ChatService {
 
     if (!documents) {
       const setting1 = await this.getSettings(1);
-
-      // console.log(currentChatId, conversation);
-
-      let systemDocs = {
-        role: 'system',
-        bot: 2,
-        content: 'NO HAY DOCUMENTOS DE CONTEXTO',
-      };
 
       systemContent = setting1.prompt_text;
 
@@ -900,8 +890,6 @@ export class ChatService {
       ]);
     }
 
-    //// console.log(currentChatId, conversation);
-
     const setting2 = await this.getSettings(2);
 
     systemContent = setting2.prompt_text;
@@ -938,21 +926,14 @@ export class ChatService {
       resultSQL.content = contextDocs;
 
       user.files = result;
-
     }
-
-    // console.log(resultSQL);
 
     await this.updateConversationHistory(id_user, currentChatId, [
       system,
       resultSQL,
     ]);
 
-    await this.updateConversationHistory(id_user, currentChatId, [user]);
-
     chatHistory = await this.historyService.loadData(currentChatId, 1);
-
-    //// console.log(currentChatId, conversation);
 
     processResponse = await this.openAIService.useGpt4ModelV2(
       setting2.model.model_name,
@@ -970,11 +951,12 @@ export class ChatService {
       content: processResponse.choices[0].message.content,
     };
 
-    await this.updateConversationHistory(id_user, currentChatId, [system]);
+    await this.updateConversationHistory(id_user, currentChatId, [
+      system,
+      user,
+    ]);
 
     chatHistory = await this.historyService.loadData(currentChatId);
-
-    //// console.log(currentChatId, conversation);
 
     return {
       message: 'Success',
