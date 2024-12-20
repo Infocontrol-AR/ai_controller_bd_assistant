@@ -86,6 +86,7 @@ export class HistoryService {
         responseSQL: message.responseSQL || null,
         onRefresh: message.onRefresh || null,
         visible: message.visible || false,
+        files: message.files || null,
         created_at: new Date(
           new Date().getTime() - new Date().getTimezoneOffset() * 60000,
         ),

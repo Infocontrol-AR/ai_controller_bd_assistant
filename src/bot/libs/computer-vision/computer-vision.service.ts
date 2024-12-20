@@ -12,8 +12,10 @@ export class ComputerVisionService {
   private client: DocumentAnalysisClient;
 
   constructor() {
-    const endpoint = process.env.AZURE_FORM_RECOGNIZER_ENDPOINT;
-    const apiKey = process.env.API_KEY_AZURE;
+    // AZURE_FORM_RECOGNIZER_ENDPOINT=https://sponsor-checkforms-formrecognizer.cognitiveservices.azure.com/
+    // API_KEY_AZURE=bb203ad74f574215968f261296377fe2
+    const endpoint = 'https://sponsor-checkforms-formrecognizer.cognitiveservices.azure.com/';
+    const apiKey = 'bb203ad74f574215968f261296377fe2';
     console.log({ endpoint, apiKey });
     this.client = new DocumentAnalysisClient(
       endpoint,

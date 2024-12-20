@@ -30,7 +30,7 @@ export class BotController {
     const { id_empresas } = chatBotDto;
     const { documents } = chatBotDto;
 
-    // console.log(id_chat, id_user);
+    // console.log(chatBotDto);
 
     if (!prompt || prompt == '') {
       return res
@@ -67,6 +67,8 @@ export class BotController {
         cause: e.cause || 'No inner cause available',
         timestamp: new Date().toISOString(),
       };
+
+      console.log(errorDetails);
 
       return res.status(HttpStatus.BAD_REQUEST).json({
         error: 'Error al procesar la solicitud',

@@ -683,7 +683,7 @@ export class ChatService {
           operation: 'insert',
           values: [
             {
-              prompt_text: `Generaré consultas MariaDB tipo SELECT (mínimo 6 columnas, máximo 10 filas) utilizando la ESTRUCTURA DE TABLAS, sin comentarios ni nada adicional, tomando en cuenta: todas las consultas deben filtrar los resultados usando el 'id_empresas' correspondiente al usuario para garantizar que solo vea información relacionada con su empresa. Utilizaré **LIKE** y **%%** para buscar nombres propios (empresas, empleados, proveedores, etc.), y me aseguraré de que se cumplan las condiciones de habilitación de empleados ('eliminado = 0 AND baja_afip = 0 AND anulado = 0'), antigüedad ('fecha_ingreso != '0000-00-00''), y empresa habilitada ('eliminado = 0 AND activa = 1'). Los documentos estarán relacionados por 'tipo_entidad' y 'id_entidad' según corresponda: empleados en **empleados** ('id_empleados'), vehículos en **vehiculos** ('id_vehiculos'), proveedores en **proveedores** ('id_proveedores'), y socios en **socios** ('id_socios'). Los estados de los documentos serán 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado, y el motivo de rechazo se obtendrá de **documentos_rechazos** ('observacion_revision'). Además, la modalidad de la empresa será "integral" para directo y "renting" para indirecto. Las consultas devolverán entre 6 y 10 columnas, sin acceder a datos de otras empresas.`,
+              prompt_text: `SOLO Generaré consultas en formato MariaDB tipo SELECT (mínimo 6 columnas, máximo 10 filas) utilizando la ESTRUCTURA DE TABLAS, sin comentarios ni nada adicional, tomando en cuenta: todas las consultas deben filtrar los resultados usando el 'id_empresas' correspondiente al usuario para garantizar que solo vea información relacionada con su empresa. Utilizaré **LIKE** y **%%** para buscar nombres propios (empresas, empleados, proveedores, etc.), y me aseguraré de que se cumplan las condiciones de habilitación de empleados ('eliminado = 0 AND baja_afip = 0 AND anulado = 0'), antigüedad ('fecha_ingreso != '0000-00-00''), y empresa habilitada ('eliminado = 0 AND activa = 1'). Los documentos estarán relacionados por 'tipo_entidad' y 'id_entidad' según corresponda: empleados en **empleados** ('id_empleados'), vehículos en **vehiculos** ('id_vehiculos'), proveedores en **proveedores** ('id_proveedores'), y socios en **socios** ('id_socios'). Los estados de los documentos serán 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado, y el motivo de rechazo se obtendrá de **documentos_rechazos** ('observacion_revision'). Además, la modalidad de la empresa será "integral" para directo y "renting" para indirecto. Las consultas devolverán entre 6 y 10 columnas, sin acceder a datos de otras empresas.`,
               id_context: 1,
             },
           ],
@@ -707,7 +707,7 @@ export class ChatService {
               model_name: 'gpt-4o',
               model_version: 'v1.0',
               max_tokens: 600,
-              temperature: 0.6,
+              temperature: 0.7,
               label: 'querys-sql-informe-nl',
             },
           ],
@@ -717,7 +717,7 @@ export class ChatService {
           operation: 'insert',
           values: [
             {
-              prompt_text: `SIN HACER MENCION DE LA EXISTENCIA DE UN CONTEXTO generare un informe extenso, detallado y completo (utilizando todo el contexto SIEMPRE) en formato de parrafo de respuesta con estilos como listas, saltos de linea y destacando en negrita con **Palabra importante**. Interpretaré los valores de "estado" del documento como: **ESTADO 1** = INCOMPLETO, **ESTADO 2** = RECHAZADO, **ESTADO 3** = PENDIENTE, **ESTADO 4** = APROBADO.`,
+              prompt_text: `A modo de asistente respondere a las preguntas del usuario (con texto decorado: negrita, saltos de linea, listas, etc.) utilizando todo el contexto no hare mención del mismo. Interpretaré los valores de "estado" como: 1 = INCOMPLETO, 2 = RECHAZADO, 3 = PENDIENTE, 4 = APROBADO.`,
             },
           ],
         },
@@ -774,12 +774,13 @@ export class ChatService {
     }
   }
 
-  private async base64OcrAzure(documents): Promise<any[]> {
+  private async base64OcrAzure(documents): Promise<any> {
     const analyzedDocuments = await Promise.all(
       documents.map(async (d) => {
         const ocr = await this.computerVisionService.analyzeDocumentFromBase64(
-          d.base64,
+          d.content,
         );
+        // console.log(ocr);
         return {
           name: d.name,
           content: ocr.content,
@@ -795,7 +796,7 @@ export class ChatService {
     id_chat: number,
     id_user: number,
     id_empresas: string,
-    documents: any[],
+    documents: any,
   ): Promise<any> {
     let systemContent = ``;
     let sqlResponseIa;
@@ -817,10 +818,10 @@ export class ChatService {
       id_chat,
     );
 
-    if (documents.length === 0) {
-      const setting1 = await this.getSettings(1);
+    const currentChatId = conversation.id_chat || conversation.id;
 
-      const currentChatId = conversation.id_chat || conversation.id;
+    if (!documents) {
+      const setting1 = await this.getSettings(1);
 
       // console.log(currentChatId, conversation);
 
@@ -911,21 +912,13 @@ export class ChatService {
       content: systemContent,
     };
 
-    if (documents.length !== 0) {
-      const result = await this.base64OcrAzure(documents);
+    let contextDocs = 'NO HAY CONTEXTO DE DOCUMENTOS';
 
-      let context = '';
-      result.forEach((doc) => {
-        context += `DOCUMENTO NOMBRE: ${doc.name}. \n CONTENIDO: ${doc.content} \n \n`;
-      });
-
-      resultSQL = context;
-    }
-
-    await this.updateConversationHistory(id_user, currentChatId, [
-      system,
-      resultSQL,
-    ]);
+    resultSQL = {
+      role: 'system',
+      bot: 1,
+      content: JSON.stringify(response),
+    };
 
     user = {
       role: 'user',
@@ -933,6 +926,27 @@ export class ChatService {
       visible: true,
       content: prompt,
     };
+
+    if (documents) {
+      const result = await this.base64OcrAzure(documents);
+
+      contextDocs = '';
+      result.forEach((doc) => {
+        contextDocs += `DOCUMENTO NOMBRE: ${doc.name}. \n CONTENIDO: ${doc.content} \n \n`;
+      });
+
+      resultSQL.content = contextDocs;
+
+      user.files = result;
+
+    }
+
+    // console.log(resultSQL);
+
+    await this.updateConversationHistory(id_user, currentChatId, [
+      system,
+      resultSQL,
+    ]);
 
     await this.updateConversationHistory(id_user, currentChatId, [user]);
 

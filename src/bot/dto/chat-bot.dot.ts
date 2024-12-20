@@ -4,5 +4,5 @@ export class ChatBotDto {
   id_user: number;
   id_empresas: string;
   status: string;
-  documents: any[];
+  documents: any;
 }
