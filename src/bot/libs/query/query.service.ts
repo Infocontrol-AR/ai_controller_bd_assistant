@@ -511,17 +511,27 @@ export class QueryService {
   }
 
   public async extractAndSanitizeQuery(data: any): Promise<string> {
-    const content = data?.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error('Content not found in the input data');
-    }
+    try {
+      if (
+        typeof data === 'object' &&
+        data !== null &&
+        typeof data.response === 'string'
+      ) {
+        const rawQuery = data.response;
 
-    return this.sanitizeQuery(content);
+        return this.sanitizeQuery(rawQuery);
+      }
+
+      throw new Error(
+        'Formato de datos inválido. El campo "response" no se encontró o no es una cadena.',
+      );
+    } catch (error) {
+      console.error('Error al extraer y sanitizar la consulta:', error.message);
+      throw error;
+    }
   }
 
   private sanitizeQuery(query: string): string {
-    query = query.replace(/```(sql)?\n?/g, '').replace(/```/g, '');
-
-    return query.trim();
+    return query.replace(/['"\\;]/g, '').trim();
   }
 }

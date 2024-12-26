@@ -683,7 +683,7 @@ export class ChatService {
           operation: 'insert',
           values: [
             {
-              prompt_text: `SOLO Generaré consultas en formato MariaDB tipo SELECT (mínimo 6 columnas, máximo 10 filas) utilizando la ESTRUCTURA DE TABLAS, sin comentarios ni nada adicional, tomando en cuenta: todas las consultas deben filtrar los resultados usando el 'id_empresas' correspondiente al usuario para garantizar que solo vea información relacionada con su empresa. Utilizaré **LIKE** y **%%** para buscar nombres propios (empresas, empleados, proveedores, etc.), y me aseguraré de que se cumplan las condiciones de habilitación de empleados ('eliminado = 0 AND baja_afip = 0 AND anulado = 0'), antigüedad ('fecha_ingreso != '0000-00-00''), y empresa habilitada ('eliminado = 0 AND activa = 1'). Los documentos estarán relacionados por 'tipo_entidad' y 'id_entidad' según corresponda: empleados en **empleados** ('id_empleados'), vehículos en **vehiculos** ('id_vehiculos'), proveedores en **proveedores** ('id_proveedores'), y socios en **socios** ('id_socios'). Los estados de los documentos serán 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado, y el motivo de rechazo se obtendrá de **documentos_rechazos** ('observacion_revision'). Además, la modalidad de la empresa será "integral" para directo y "renting" para indirecto. Las consultas devolverán entre 6 y 10 columnas, sin acceder a datos de otras empresas.`,
+              prompt_text: `Responde siempre en formato JSON con los siguientes campos: type (0 para respuestas en lenguaje natural y 1 para consultas SQL puras) y response (el contenido, ya sea el texto en lenguaje natural o la consulta SQL). Si la respuesta es en lenguaje natural (type = 0), utiliza un tono amigable y cercano, hablando en primera persona y proyectando las acciones o resultados hacia el futuro, sin mencionar la existencia de un contexto o información previa. Si no es posible responder en lenguaje natural, genera una consulta SELECT en MariaDB (type = 1) con estas reglas: 1. Filtrar por 'id_empresas' del usuario para garantizar acceso solo a su empresa. 2. Usar LIKE y %% para buscar nombres propios. 3. Condiciones: empleados habilitados: eliminado = 0 AND baja_afip = 0 AND anulado = 0 y fecha_ingreso != '0000-00-00'; empresa habilitada: eliminado = 0 AND activa = 1. 4. Relaciones: empleados: empleados ('id_empleados'); vehículos: vehiculos ('id_vehiculos'); proveedores: proveedores ('id_proveedores'); socios: socios ('id_socios'). 5. Estados de documentos: 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado; motivo de rechazo: documentos_rechazos ('observacion_revision'). 6. Modalidad de empresa: integral = directo, renting = indirecto. Devuelve entre 6 y 10 columnas. No accedas a datos de otras empresas. Si la solicitud del usuario carece de sentido o intenta realizar una consulta peligrosa (como operaciones distintas de SELECT), usa type = 0 y responde de manera genérica y amigable explicando que no se puede procesar la solicitud por razones de seguridad o falta de lógica en la petición.`,
               id_context: 1,
             },
           ],
@@ -764,6 +764,39 @@ export class ChatService {
             },
           ],
         },
+        /////
+        {
+          tableName: 'model',
+          operation: 'insert',
+          values: [
+            {
+              model_name: 'gpt-4o',
+              model_version: 'v1.0',
+              max_tokens: 5,
+              temperature: 0.1,
+              label: 'interprete-switch',
+            },
+          ],
+        },
+        {
+          tableName: 'prompt',
+          operation: 'insert',
+          values: [
+            {
+              prompt_text: ``,
+            },
+          ],
+        },
+        {
+          tableName: 'setting',
+          operation: 'insert',
+          values: [
+            {
+              id_model: 4,
+              id_prompt: 4,
+            },
+          ],
+        },
       ];
 
       for (const d of data) {
@@ -791,6 +824,42 @@ export class ChatService {
     return analyzedDocuments;
   }
 
+  private cleanResponseJSON(response: any): any {
+    try {
+      if (
+        typeof response === 'object' &&
+        response.choices &&
+        Array.isArray(response.choices) &&
+        response.choices[0].message &&
+        typeof response.choices[0].message.content === 'string'
+      ) {
+        const rawContent = response.choices[0].message.content;
+
+        const sanitized = rawContent.replace(/```json|```/g, '').trim();
+
+        const parsed = JSON.parse(sanitized);
+
+        if (
+          typeof parsed === 'object' &&
+          parsed !== null &&
+          typeof parsed.type === 'number' &&
+          typeof parsed.response === 'string'
+        ) {
+          return parsed;
+        }
+
+        throw new Error('El JSON interno no tiene el formato esperado.');
+      }
+
+      throw new Error(
+        'El objeto de respuesta no tiene la estructura esperada.',
+      );
+    } catch (error) {
+      console.error('Error al procesar el JSON:', error.message);
+      return null;
+    }
+  }
+
   public async chatV3(
     prompt: string,
     id_chat: number,
@@ -798,6 +867,14 @@ export class ChatService {
     id_empresas: string,
     documents: any,
   ): Promise<any> {
+    await this.initialize();
+
+    const conversation = await this.getOrCreateConversation(
+      id_user,
+      prompt,
+      id_chat,
+    );
+
     let systemContent = ``;
     let sqlResponseIa;
     let extractedSql;
@@ -808,163 +885,134 @@ export class ChatService {
     let resultSQL;
     let chatHistory;
 
-    await this.initialize();
-
-    const conversation = await this.getOrCreateConversation(
-      id_user,
-      prompt,
-      id_chat,
-    );
-
     const currentChatId = conversation.id_chat || conversation.id;
 
-    if (!documents) {
-      const setting1 = await this.getSettings(1);
+    const setting1 = await this.getSettings(1);
 
-      systemContent = setting1.prompt_text;
+    systemContent = setting1.prompt_text;
 
-      let systemC = {
-        role: 'system',
-        bot: 0,
-        content: setting1.context_text,
-      };
+    let systemC = {
+      role: 'system',
+      bot: 0,
+      content: setting1.context_text,
+    };
 
-      let contextId_empresas = {
-        role: 'system',
-        bot: 0,
-        content: `ID_ EMPRESAS DE EL USUARIO ACTUAL: ${id_empresas}`,
-      };
-
-      system = {
-        role: 'system',
-        bot: 0,
-        content: systemContent,
-      };
-      user = {
-        role: 'user',
-        bot: 0,
-        content: prompt,
-      };
-
-      await this.updateConversationHistory(id_user, currentChatId, [
-        systemC,
-        contextId_empresas,
-        system,
-        user,
-      ]);
-
-      chatHistory = await this.historyService.loadData(currentChatId, 0);
-
-      sqlResponseIa = await this.openAIService.useGpt4ModelV2(
-        setting1.model.model_name,
-        setting1.model.temperature,
-        setting1.model.max_tokens,
-        chatHistory[0].history,
-      );
-
-      extractedSql =
-        await this.queryService.extractAndSanitizeQuery(sqlResponseIa);
-      if (!extractedSql) {
-        throw new Error(
-          'Verifique la logica de su consulta e intente nuevamente',
-        );
-      }
-
-      response = await this.databaseService.executeQuery(extractedSql);
-
-      system = {
-        role: 'system',
-        bot: 0,
-        content: sqlResponseIa.choices[0].message.content,
-      };
-
-      resultSQL = {
-        role: 'system',
-        bot: 0,
-        content: JSON.stringify(response),
-      };
-
-      await this.updateConversationHistory(id_user, currentChatId, [
-        system,
-        resultSQL,
-      ]);
-    }
-
-    const setting2 = await this.getSettings(2);
-
-    systemContent = setting2.prompt_text;
+    let contextId_empresas = {
+      role: 'system',
+      bot: 0,
+      content: `ID_ EMPRESAS DE EL USUARIO ACTUAL: ${id_empresas}`,
+    };
 
     system = {
       role: 'system',
-      bot: 1,
+      bot: 0,
       content: systemContent,
     };
-
-    let contextDocs = 'NO HAY CONTEXTO DE DOCUMENTOS';
-
-    resultSQL = {
-      role: 'system',
-      bot: 1,
-      content: JSON.stringify(response),
-    };
-
     user = {
       role: 'user',
-      bot: 1,
-      visible: true,
+      bot: 0,
       content: prompt,
-    };
-
-    if (documents) {
-      const result = await this.base64OcrAzure(documents);
-
-      contextDocs = '';
-      result.forEach((doc) => {
-        contextDocs += `DOCUMENTO NOMBRE: ${doc.name}. \n CONTENIDO: ${doc.content} \n \n`;
-      });
-
-      resultSQL.content = contextDocs;
-
-      user.files = result;
-    }
-
-    await this.updateConversationHistory(id_user, currentChatId, [
-      system,
-      resultSQL,
-    ]);
-
-    chatHistory = await this.historyService.loadData(currentChatId, 1);
-
-    processResponse = await this.openAIService.useGpt4ModelV2(
-      setting2.model.model_name,
-      setting2.model.temperature,
-      setting2.model.max_tokens || null,
-      chatHistory[0].history,
-    );
-
-    system = {
-      role: 'system',
-      bot: 1,
       visible: true,
-      responseSQL: response,
-      onRefresh: prompt,
-      content: processResponse.choices[0].message.content,
     };
 
     await this.updateConversationHistory(id_user, currentChatId, [
+      systemC,
+      contextId_empresas,
       system,
       user,
     ]);
 
+    chatHistory = await this.historyService.loadData(currentChatId, 0);
+
+    sqlResponseIa = await this.openAIService.useGpt4ModelV2(
+      setting1.model.model_name,
+      setting1.model.temperature,
+      setting1.model.max_tokens,
+      chatHistory[0].history,
+    );
+
+    const result = this.cleanResponseJSON(sqlResponseIa);
+
+    const systemResponse = {
+      role: 'system',
+      bot: 0,
+      content: JSON.stringify(result),
+    };
+
+    await this.updateConversationHistory(id_user, currentChatId, [
+      systemResponse,
+    ]);
+
+    // return result;
+
+    let ln = null;
+
+    switch (result.type) {
+      case 0:
+        ln = result.response;
+
+        break;
+
+      case 1:
+        // console.log(result.response);
+
+        response = await this.databaseService.executeQuery(result.response);
+
+        resultSQL = response;
+
+        const systemResponse = {
+          role: 'system',
+          bot: 0,
+          content: JSON.stringify(response),
+        };
+    
+        await this.updateConversationHistory(id_user, currentChatId, [
+          systemResponse,
+        ]);
+
+        const setting2 = await this.getSettings(2);
+
+        processResponse = await this.openAIService.useGpt4ModelV2(
+          setting2.model.model_name,
+          setting2.model.temperature,
+          setting2.model.max_tokens || null,
+          [
+            {
+              role: 'system',
+              bot: 0,
+              content: JSON.stringify(response),
+            }, 
+            {
+              role: 'user',
+              bot: 0,
+              content: prompt,
+              visible: true,
+            }
+          ],
+        );
+
+        // return processResponse;
+
+        ln = processResponse.choices[0].message.content;
+
+        break;
+    }
+
+    system = {
+      role: 'system',
+      bot: 0,
+      visible: true,
+      responseSQL: resultSQL || ln,
+      onRefresh: prompt,
+      content: ln,
+    };
+
+    await this.updateConversationHistory(id_user, currentChatId, [system]);
+
     chatHistory = await this.historyService.loadData(currentChatId);
 
     return {
-      message: 'Success',
-      responseIA: processResponse.choices[0].message.content,
-      querySQL: extractedSql,
-      responseSQL: response,
       history: chatHistory[0].history,
-      prompt,
       id_chat: currentChatId,
     };
   }
