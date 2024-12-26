@@ -1012,8 +1012,23 @@ export class ChatService {
     chatHistory = await this.historyService.loadData(currentChatId);
 
     return {
+      message: 'Success',
       history: chatHistory[0].history,
       id_chat: currentChatId,
+      responseIA: ln,
+      querySQL: result.response,  
+      responseSQL: resultSQL,
+      prompt
+
     };
+
+    // message: 'Success',
+    // responseIA: processResponse.choices[0].message.content,
+    // querySQL: extractedSql,
+    // responseSQL: response,
+    // history: chatHistory[0].history,
+    // prompt,
+    // id_chat: currentChatId,
+
   }
 }
