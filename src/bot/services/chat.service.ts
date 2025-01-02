@@ -5,6 +5,7 @@ import { OpenAIService } from '../libs/openai/openai.service';
 import { ComputerVisionService } from '../libs/computer-vision/computer-vision.service';
 import { HistoryService } from './history.service';
 import { CrudService } from './crud.service';
+import { Files } from 'openai/resources';
 
 @Injectable()
 export class ChatService {
@@ -683,7 +684,7 @@ export class ChatService {
           operation: 'insert',
           values: [
             {
-              prompt_text: `SOLO Generaré consultas en formato MariaDB tipo SELECT (mínimo 6 columnas, máximo 10 filas) utilizando la ESTRUCTURA DE TABLAS, sin comentarios ni nada adicional, tomando en cuenta: todas las consultas deben filtrar los resultados usando el 'id_empresas' correspondiente al usuario para garantizar que solo vea información relacionada con su empresa. Utilizaré **LIKE** y **%%** para buscar nombres propios (empresas, empleados, proveedores, etc.), y me aseguraré de que se cumplan las condiciones de habilitación de empleados ('eliminado = 0 AND baja_afip = 0 AND anulado = 0'), antigüedad ('fecha_ingreso != '0000-00-00''), y empresa habilitada ('eliminado = 0 AND activa = 1'). Los documentos estarán relacionados por 'tipo_entidad' y 'id_entidad' según corresponda: empleados en **empleados** ('id_empleados'), vehículos en **vehiculos** ('id_vehiculos'), proveedores en **proveedores** ('id_proveedores'), y socios en **socios** ('id_socios'). Los estados de los documentos serán 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado, y el motivo de rechazo se obtendrá de **documentos_rechazos** ('observacion_revision'). Además, la modalidad de la empresa será "integral" para directo y "renting" para indirecto. Las consultas devolverán entre 6 y 10 columnas, sin acceder a datos de otras empresas.`,
+              prompt_text: `1. Antes de generar cualquier consulta MariaDB, verificar si existe una respuesta en el historial. Si hay una coincidencia relevante, responder al usuario en formato JSON con {mode: 0, response: 'respuesta en lenguaje natural'}. Si no existe, proceder con la creación de una consulta. 2. Generar consultas MariaDB tipo SELECT bajo estas condiciones: - Filtrar siempre por 'id_empresas' para mostrar solo datos relacionados con la empresa del usuario. - Usar operadores LIKE y %% para búsquedas de nombres propios (empresas, empleados, proveedores, etc.). - Incluir solo registros activos según las siguientes reglas: - Empleados habilitados: eliminado = 0 AND baja_afip = 0 AND anulado = 0 AND fecha_ingreso != '0000-00-00'. - Empresa habilitada: eliminado = 0 AND activa = 1. - Relación de documentos: basarse en los campos 'tipo_entidad' y 'id_entidad': - empleados: 'id_empleados', - vehiculos: 'id_vehiculos', - proveedores: 'id_proveedores', - socios: 'id_socios'. - Estados de documentos: - 1 = Incompleto, - 2 = Rechazado, - 3 = Pendiente, - 4 = Aprobado. - Motivo de rechazo se encuentra en el campo 'observacion_revision' de la tabla documentos_rechazos. 3. Formato de Respuesta: - Responder exclusivamente en formato JSON: - {mode: 0, response: 'respuesta en lenguaje natural'} para respuestas amigables o negativas. - {mode: 1, response: 'query maria db'} para las consultas generadas. - Las consultas deben limitarse a: - Mostrar entre 6 y 10 columnas en los resultados. - Máximo 10 filas por consulta. - Considerar las modalidades de empresa: "integral" (directo) o "renting" (indirecto). 4. Comportamiento General: - Como asistente amigable, responder solo preguntas lógicas y coherentes. En caso contrario, proporcionar una respuesta negativa breve y sin detalles innecesarios. - Mantener la interacción clara y precisa, evitando respuestas extensas o fuera del formato requerido.`,
               id_context: 1,
             },
           ],
@@ -820,85 +821,116 @@ export class ChatService {
 
     const currentChatId = conversation.id_chat || conversation.id;
 
-    if (!documents) {
-      const setting1 = await this.getSettings(1);
+    const setting1 = await this.getSettings(1);
 
-      // console.log(currentChatId, conversation);
+    // console.log(currentChatId, conversation);
 
-      let systemDocs = {
-        role: 'system',
-        bot: 2,
-        content: 'NO HAY DOCUMENTOS DE CONTEXTO',
-      };
+    let contextDocs = 'NO HAY CONTEXTO DE DOCUMENTOS';
 
-      systemContent = setting1.prompt_text;
+    if (documents) {
+      const result = await this.base64OcrAzure(documents);
 
-      let systemC = {
-        role: 'system',
-        bot: 0,
-        content: setting1.context_text,
-      };
+      contextDocs = '';
+      result.forEach((doc) => {
+        contextDocs += `DOCUMENTO NOMBRE: ${doc.name}. \n CONTENIDO: ${doc.content} \n \n`;
+      });
 
-      let contextId_empresas = {
-        role: 'system',
-        bot: 0,
-        content: `ID_ EMPRESAS DE EL USUARIO ACTUAL: ${id_empresas}`,
-      };
-
-      system = {
-        role: 'system',
-        bot: 0,
-        content: systemContent,
-      };
-      user = {
-        role: 'user',
-        bot: 0,
-        content: prompt,
-      };
-
-      await this.updateConversationHistory(id_user, currentChatId, [
-        systemC,
-        contextId_empresas,
-        system,
-        user,
-      ]);
-
-      chatHistory = await this.historyService.loadData(currentChatId, 0);
-
-      sqlResponseIa = await this.openAIService.useGpt4ModelV2(
-        setting1.model.model_name,
-        setting1.model.temperature,
-        setting1.model.max_tokens,
-        chatHistory[0].history,
-      );
-
-      extractedSql =
-        await this.queryService.extractAndSanitizeQuery(sqlResponseIa);
-      if (!extractedSql) {
-        throw new Error(
-          'Verifique la logica de su consulta e intente nuevamente',
-        );
-      }
-
-      response = await this.databaseService.executeQuery(extractedSql);
-
-      system = {
-        role: 'system',
-        bot: 0,
-        content: sqlResponseIa.choices[0].message.content,
-      };
-
-      resultSQL = {
-        role: 'system',
-        bot: 0,
-        content: JSON.stringify(response),
-      };
-
-      await this.updateConversationHistory(id_user, currentChatId, [
-        system,
-        resultSQL,
-      ]);
     }
+
+    let systemDocs = {
+      role: 'user',
+      bot: 2,
+      content: contextDocs,
+    };
+
+    systemContent = setting1.prompt_text;
+
+    let systemC = {
+      role: 'system',
+      bot: 0,
+      content: setting1.context_text,
+    };
+
+    let contextId_empresas = {
+      role: 'system',
+      bot: 0,
+      content: `ID_ EMPRESAS DE EL USUARIO ACTUAL: ${id_empresas}`,
+    };
+
+    system = {
+      role: 'system',
+      bot: 0,
+      content: systemContent,
+    };
+    user = {
+      role: 'user',
+      bot: 0,
+      content: prompt,
+    };
+
+    await this.updateConversationHistory(id_user, currentChatId, [
+      systemDocs,
+      systemC,
+      contextId_empresas,
+      system,
+      user,
+    ]);
+
+    chatHistory = await this.historyService.loadData(currentChatId, 0);
+
+    sqlResponseIa = await this.openAIService.useGpt4ModelV2(
+      setting1.model.model_name,
+      setting1.model.temperature,
+      setting1.model.max_tokens,
+      chatHistory[0].history,
+    );
+
+    let rawContent = sqlResponseIa.choices[0].message.content.trim();
+    let sanitizedContent = rawContent
+        .replace(/[^\x20-\x7E]/g, '') // Eliminar caracteres no imprimibles
+        .replace(/^`+|`+$/g, ''); // Quitar comillas invertidas
+    
+    let jsonMatch = sanitizedContent.match(/{.*}/s); // Capturar JSON entre llaves
+    if (jsonMatch) {
+        try {
+            const parsedJSON = JSON.parse(jsonMatch[0]);
+            console.log(parsedJSON);
+        } catch (error) {
+            console.error('Error al analizar JSON:', error.message);
+            console.error('Contenido problemático:', jsonMatch[0]);
+        }
+    } else {
+        console.error('No se encontró un JSON válido:', sanitizedContent);
+    }
+    
+    return [];
+
+    extractedSql =
+      await this.queryService.extractAndSanitizeQuery(sqlResponseIa);
+    if (!extractedSql) {
+      throw new Error(
+        'Verifique la logica de su consulta e intente nuevamente',
+      );
+    }
+
+    response = await this.databaseService.executeQuery(extractedSql);
+
+    system = {
+      role: 'system',
+      bot: 0,
+      content: sqlResponseIa.choices[0].message.content,
+    };
+
+    resultSQL = {
+      role: 'system',
+      bot: 0,
+      content: JSON.stringify(response),
+    };
+
+    await this.updateConversationHistory(id_user, currentChatId, [
+      system,
+      resultSQL,
+    ]);
 
     //// console.log(currentChatId, conversation);
 
@@ -912,7 +944,11 @@ export class ChatService {
       content: systemContent,
     };
 
-    let contextDocs = 'NO HAY CONTEXTO DE DOCUMENTOS';
+    const sysDocs = {
+      role: 'system',
+      bot: 1,
+      content: contextDocs,
+    };
 
     resultSQL = {
       role: 'system',
@@ -925,27 +961,15 @@ export class ChatService {
       bot: 1,
       visible: true,
       content: prompt,
+      files: documents || []
     };
-
-    if (documents) {
-      const result = await this.base64OcrAzure(documents);
-
-      contextDocs = '';
-      result.forEach((doc) => {
-        contextDocs += `DOCUMENTO NOMBRE: ${doc.name}. \n CONTENIDO: ${doc.content} \n \n`;
-      });
-
-      resultSQL.content = contextDocs;
-
-      user.files = result;
-
-    }
 
     // console.log(resultSQL);
 
     await this.updateConversationHistory(id_user, currentChatId, [
-      system,
+      sysDocs,
       resultSQL,
+      system
     ]);
 
     await this.updateConversationHistory(id_user, currentChatId, [user]);
