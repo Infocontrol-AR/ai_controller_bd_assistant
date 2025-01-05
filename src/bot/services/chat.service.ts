@@ -169,77 +169,6 @@ export class ChatService {
     return response;
   }
 
-  // const getTableStructure = await this.queryService.getTableStructure(tables);
-  // const tables = {
-  //   documentos_rechazos: [
-  //     'id_documentos',
-  //     'fecha_rechazo',
-  //     'observacion_revision',
-  //   ],
-  //   empresas: [
-  //     'id_empresas',
-  //     'nombre',
-  //     'razon_social_cliente',
-  //     'cuit_cliente',
-  //     'activa',
-  //     'nacionalidad',
-  //     'id_grupos',
-  //     'fecha_hora_carga',
-  //     'eliminado',
-  //   ],
-  //   proveedores: [
-  //     'id_proveedores',
-  //     'cuit',
-  //     'id_empresas',
-  //     'nombre_razon_social',
-  //     'nombre_comercial',
-  //     'domicilio_legal',
-  //     'email',
-  //     'nacionalidad',
-  //     'fecha_hora_carga',
-  //   ],
-  //   empleados: [
-  //     'id_empleados',
-  //     'id_proveedores',
-  //     'apellido',
-  //     'nombre',
-  //     'dni',
-  //     'cuil',
-  //     'domicilio',
-  //     'estado',
-  //     'anulado',
-  //     'eliminado',
-  //     'baja_afip',
-  //     'id_motivos_baja_afip',
-  //     'fecha_baja_afip',
-  //     'estado',
-  //     'fecha_ingreso',
-  //     'sexo',
-  //     'fecha_nacimiento',
-  //   ],
-  //   documentos: [
-  //     'id',
-  //     'id_documentos',
-  //     'fecha_hora_creacion',
-  //     'id_documentos_tipos',
-  //     'tipo_entidad',
-  //     'modulo',
-  //     'tipo_entidad',
-  //     'id_entidad',
-  //     'estado',
-  //     'fecha_hora_modifica',
-  //     'id_empresas',
-  //   ],
-  //   documentos_tipos: [
-  //     'id_documentos_tipos',
-  //     'nombre',
-  //     'tipo',
-  //     'ayuda',
-  //     'nacionalidad',
-  //   ],
-  //   empresas_grupos: ['id_grupos', 'nombre', 'tipo_cliente'],
-  // };
-
   private async seeders(): Promise<void> {
     try {
       const data = [
@@ -250,8 +179,8 @@ export class ChatService {
             {
               model_name: 'gpt-4o',
               model_version: 'v1.0',
-              max_tokens: 250,
-              temperature: 0.3,
+              max_tokens: 1500,
+              temperature: 0.5,
               label: 'querys-sql',
             },
           ],
@@ -684,7 +613,7 @@ export class ChatService {
           operation: 'insert',
           values: [
             {
-              prompt_text: `1. Antes de generar cualquier consulta MariaDB, verificar si existe una respuesta en el historial. Si hay una coincidencia relevante, responder al usuario en formato JSON con {mode: 0, response: 'respuesta en lenguaje natural'}. Si no existe, proceder con la creación de una consulta. 2. Generar consultas MariaDB tipo SELECT bajo estas condiciones: - Filtrar siempre por 'id_empresas' para mostrar solo datos relacionados con la empresa del usuario. - Usar operadores LIKE y %% para búsquedas de nombres propios (empresas, empleados, proveedores, etc.). - Incluir solo registros activos según las siguientes reglas: - Empleados habilitados: eliminado = 0 AND baja_afip = 0 AND anulado = 0 AND fecha_ingreso != '0000-00-00'. - Empresa habilitada: eliminado = 0 AND activa = 1. - Relación de documentos: basarse en los campos 'tipo_entidad' y 'id_entidad': - empleados: 'id_empleados', - vehiculos: 'id_vehiculos', - proveedores: 'id_proveedores', - socios: 'id_socios'. - Estados de documentos: - 1 = Incompleto, - 2 = Rechazado, - 3 = Pendiente, - 4 = Aprobado. - Motivo de rechazo se encuentra en el campo 'observacion_revision' de la tabla documentos_rechazos. 3. Formato de Respuesta: - Responder exclusivamente en formato JSON: - {mode: 0, response: 'respuesta en lenguaje natural'} para respuestas amigables o negativas. - {mode: 1, response: 'query maria db'} para las consultas generadas. - Las consultas deben limitarse a: - Mostrar entre 6 y 10 columnas en los resultados. - Máximo 10 filas por consulta. - Considerar las modalidades de empresa: "integral" (directo) o "renting" (indirecto). 4. Comportamiento General: - Como asistente amigable, responder solo preguntas lógicas y coherentes. En caso contrario, proporcionar una respuesta negativa breve y sin detalles innecesarios. - Mantener la interacción clara y precisa, evitando respuestas extensas o fuera del formato requerido.`,
+              prompt_text: `SIEMPRE RESPONDERE EN FORMATO JSON. Verifica el historial para intentar responder al usuario. Si hay coincidencia, responde como asistente amigable en JSON: {"mode": 0, "response": "respuesta en lenguaje natural"}. Si no puedes responder genera una consulta MARIA DB para intentar responder al usuario {"mode": 1, "response": "QUERY MARIA DB PURA"}, SOLO CONSULTAS TIPO 'SELECT' puedes tomar en cuenta: filtrar por 'id_empresas' (SOLO RESPONDERAS PREGUNTAS DE ESTA EMPRESA) (para empleados: empleado -> id_proveedores -> proveedor -> id_empresas), usar LIKE y %% para nombres, incluir solo registros activos: empleados (eliminado = 0, baja_afip = 0, anulado = 0, fecha_ingreso != '0000-00-00'), empresas (eliminado = 0, activa = 1). Basarse en 'tipo_entidad' y 'id_entidad': empleados ('id_empleados'), vehículos ('id_vehiculos'), proveedores ('id_proveedores'), socios ('id_socios'). Estados de documentos: 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado (documentos -> documento -> estado). Motivo de rechazo en 'observacion_revision' de 'documentos_rechazos'. Consultas: entre 6-10 columnas, máximo 10 filas, considerar modalidades: "integral" (directo) o "renting" (indirecto). Responde exclusivamente en JSON válido para JSON.parse(). Respuestas negativas o no lógicas: {"mode": 0, "response": "No puedo responder a esa pregunta.", "motivo": "Motivo del rechazo en lenguaje natural"}.`,
               id_context: 1,
             },
           ],
@@ -707,8 +636,8 @@ export class ChatService {
             {
               model_name: 'gpt-4o',
               model_version: 'v1.0',
-              max_tokens: 600,
-              temperature: 0.7,
+              max_tokens: 800,
+              temperature: 0.5,
               label: 'querys-sql-informe-nl',
             },
           ],
@@ -781,7 +710,6 @@ export class ChatService {
         const ocr = await this.computerVisionService.analyzeDocumentFromBase64(
           d.content,
         );
-        // console.log(ocr);
         return {
           name: d.name,
           content: ocr.content,
@@ -811,8 +739,6 @@ export class ChatService {
 
     await this.initialize();
 
-    // return setting1;
-
     const conversation = await this.getOrCreateConversation(
       id_user,
       prompt,
@@ -823,8 +749,6 @@ export class ChatService {
 
     const setting1 = await this.getSettings(1);
 
-    // console.log(currentChatId, conversation);
-
     let contextDocs = 'NO HAY CONTEXTO DE DOCUMENTOS';
 
     if (documents) {
@@ -834,7 +758,6 @@ export class ChatService {
       result.forEach((doc) => {
         contextDocs += `DOCUMENTO NOMBRE: ${doc.name}. \n CONTENIDO: ${doc.content} \n \n`;
       });
-
     }
 
     let systemDocs = {
@@ -878,136 +801,291 @@ export class ChatService {
 
     chatHistory = await this.historyService.loadData(currentChatId, 0);
 
-    sqlResponseIa = await this.openAIService.useGpt4ModelV2(
-      setting1.model.model_name,
-      setting1.model.temperature,
-      setting1.model.max_tokens,
-      chatHistory[0].history,
-    );
-
-    let rawContent = sqlResponseIa.choices[0].message.content.trim();
-    let sanitizedContent = rawContent
-        .replace(/[^\x20-\x7E]/g, '') // Eliminar caracteres no imprimibles
-        .replace(/^`+|`+$/g, ''); // Quitar comillas invertidas
-    
-    let jsonMatch = sanitizedContent.match(/{.*}/s); // Capturar JSON entre llaves
-    if (jsonMatch) {
-        try {
-            const parsedJSON = JSON.parse(jsonMatch[0]);
-            console.log(parsedJSON);
-        } catch (error) {
-            console.error('Error al analizar JSON:', error.message);
-            console.error('Contenido problemático:', jsonMatch[0]);
-        }
-    } else {
-        console.error('No se encontró un JSON válido:', sanitizedContent);
-    }
-    
-    return [];
-
-    extractedSql =
-      await this.queryService.extractAndSanitizeQuery(sqlResponseIa);
-    if (!extractedSql) {
-      throw new Error(
-        'Verifique la logica de su consulta e intente nuevamente',
+    try {
+      sqlResponseIa = await this.openAIService.useGpt4ModelV2(
+        setting1.model.model_name,
+        setting1.model.temperature,
+        setting1.model.max_tokens,
+        chatHistory[0].history,
       );
+
+      console.log(sqlResponseIa);
+
+      console.log(sqlResponseIa.choices[0].message.content);
+
+      const crudoJSON = await this.queryService.toJSON(
+        sqlResponseIa.choices[0].message.content,
+      );
+
+      if (!crudoJSON) {
+        const system0 = {
+          role: 'system',
+          bot: 0,
+          // visible: true,
+          responseSQL: [],
+          onRefresh: prompt,
+          content:
+            'Ocurrio un error al ejecutar la consulta, puede intentar nuevamente más tarde',
+        };
+
+        user = {
+          role: 'user',
+          bot: 1,
+          visible: true,
+          content: prompt,
+          files: documents || [],
+        };
+
+        system = {
+          role: 'system',
+          bot: 1,
+          visible: true,
+          responseSQL: [],
+          onRefresh: prompt,
+          content:
+            'Ocurrio un error al ejecutar la consulta, puede intentar nuevamente más tarde',
+        };
+
+        await this.updateConversationHistory(id_user, currentChatId, [
+          system0,
+          user,
+          system,
+        ]);
+
+        chatHistory = await this.historyService.loadData(currentChatId);
+
+        return {
+          history: chatHistory[0].history,
+          id_chat: currentChatId,
+        };
+      }
+
+      switch (parseInt(crudoJSON.mode)) {
+        case 1:
+          response = await this.databaseService.executeQuery(
+            crudoJSON.response,
+          );
+
+          if (!response) {
+            const system0 = {
+              role: 'system',
+              bot: 0,
+              // visible: true,
+              responseSQL: [],
+              onRefresh: prompt,
+              content:
+                'Ocurrio un error al ejecutar la consulta, puede intentar nuevamente más tarde',
+            };
+
+            user = {
+              role: 'user',
+              bot: 1,
+              visible: true,
+              content: prompt,
+              files: documents || [],
+            };
+
+            system = {
+              role: 'system',
+              bot: 1,
+              visible: true,
+              responseSQL: [],
+              onRefresh: prompt,
+              content:
+                'Ocurrio un error al ejecutar la consulta, puede intentar nuevamente más tarde',
+            };
+
+            await this.updateConversationHistory(id_user, currentChatId, [
+              system0,
+              user,
+              system,
+            ]);
+
+            chatHistory = await this.historyService.loadData(currentChatId);
+
+            return {
+              history: chatHistory[0].history,
+              id_chat: currentChatId,
+            };
+          }
+
+          system = {
+            role: 'system',
+            bot: 0,
+            content: crudoJSON.response,
+          };
+
+          resultSQL = {
+            role: 'system',
+            bot: 0,
+            content: JSON.stringify(response),
+          };
+
+          await this.updateConversationHistory(id_user, currentChatId, [
+            system,
+            resultSQL,
+          ]);
+
+          const setting2 = await this.getSettings(2);
+
+          systemContent = setting2.prompt_text;
+
+          system = {
+            role: 'system',
+            bot: 1,
+            content: systemContent,
+          };
+
+          const sysDocs = {
+            role: 'system',
+            bot: 1,
+            content: contextDocs,
+          };
+
+          resultSQL = {
+            role: 'system',
+            bot: 1,
+            content: JSON.stringify(response),
+          };
+
+          user = {
+            role: 'user',
+            bot: 1,
+            visible: true,
+            content: prompt,
+            files: documents || [],
+          };
+
+          // console.log(resultSQL);
+
+          await this.updateConversationHistory(id_user, currentChatId, [
+            sysDocs,
+            resultSQL,
+            system,
+          ]);
+
+          await this.updateConversationHistory(id_user, currentChatId, [user]);
+
+          chatHistory = await this.historyService.loadData(currentChatId, 1);
+
+          //// console.log(currentChatId, conversation);
+
+          processResponse = await this.openAIService.useGpt4ModelV2(
+            setting2.model.model_name,
+            setting2.model.temperature,
+            setting2.model.max_tokens || null,
+            chatHistory[0].history,
+          );
+
+          system = {
+            role: 'system',
+            bot: 1,
+            visible: true,
+            responseSQL: response,
+            onRefresh: prompt,
+            content: processResponse.choices[0].message.content,
+          };
+
+          await this.updateConversationHistory(id_user, currentChatId, [
+            system,
+          ]);
+
+          chatHistory = await this.historyService.loadData(currentChatId);
+
+          return {
+            history: chatHistory[0].history,
+            id_chat: currentChatId,
+          };
+
+          //// console.log(currentChatId, conversation);
+
+          break;
+
+        case 0:
+          const system0 = {
+            role: 'system',
+            bot: 0,
+            // visible: true,
+            responseSQL: [],
+            onRefresh: prompt,
+            content: crudoJSON.response,
+          };
+
+          user = {
+            role: 'user',
+            bot: 1,
+            visible: true,
+            content: prompt,
+            files: documents || [],
+          };
+
+          system = {
+            role: 'system',
+            bot: 1,
+            visible: true,
+            responseSQL: response,
+            onRefresh: prompt,
+            content: crudoJSON.response,
+          };
+
+          await this.updateConversationHistory(id_user, currentChatId, [
+            system0,
+            user,
+            system,
+          ]);
+
+          chatHistory = await this.historyService.loadData(currentChatId);
+
+          return {
+            history: chatHistory[0].history,
+            id_chat: currentChatId,
+          };
+
+          break;
+      }
+    } catch (error) {
+      console.log('soy un error');
+
+      const system0 = {
+        role: 'system',
+        bot: 0,
+        // visible: true,
+        responseSQL: [],
+        onRefresh: prompt,
+        content:
+          'Ocurrio un error al obtener la respuesta, puede intentar nuevamente más tarde',
+      };
+
+      user = {
+        role: 'user',
+        bot: 1,
+        visible: true,
+        content: prompt,
+        files: documents || [],
+      };
+
+      system = {
+        role: 'system',
+        bot: 1,
+        visible: true,
+        responseSQL: [],
+        onRefresh: prompt,
+        content:
+          'Ocurrio un error al obtener la respuesta, puede intentar nuevamente más tarde',
+      };
+
+      await this.updateConversationHistory(id_user, currentChatId, [
+        system0,
+        user,
+        system,
+      ]);
+
+      chatHistory = await this.historyService.loadData(currentChatId);
+
+      return {
+        history: chatHistory[0].history,
+        id_chat: currentChatId,
+      };
     }
-
-    response = await this.databaseService.executeQuery(extractedSql);
-
-    system = {
-      role: 'system',
-      bot: 0,
-      content: sqlResponseIa.choices[0].message.content,
-    };
-
-    resultSQL = {
-      role: 'system',
-      bot: 0,
-      content: JSON.stringify(response),
-    };
-
-    await this.updateConversationHistory(id_user, currentChatId, [
-      system,
-      resultSQL,
-    ]);
-
-    //// console.log(currentChatId, conversation);
-
-    const setting2 = await this.getSettings(2);
-
-    systemContent = setting2.prompt_text;
-
-    system = {
-      role: 'system',
-      bot: 1,
-      content: systemContent,
-    };
-
-    const sysDocs = {
-      role: 'system',
-      bot: 1,
-      content: contextDocs,
-    };
-
-    resultSQL = {
-      role: 'system',
-      bot: 1,
-      content: JSON.stringify(response),
-    };
-
-    user = {
-      role: 'user',
-      bot: 1,
-      visible: true,
-      content: prompt,
-      files: documents || []
-    };
-
-    // console.log(resultSQL);
-
-    await this.updateConversationHistory(id_user, currentChatId, [
-      sysDocs,
-      resultSQL,
-      system
-    ]);
-
-    await this.updateConversationHistory(id_user, currentChatId, [user]);
-
-    chatHistory = await this.historyService.loadData(currentChatId, 1);
-
-    //// console.log(currentChatId, conversation);
-
-    processResponse = await this.openAIService.useGpt4ModelV2(
-      setting2.model.model_name,
-      setting2.model.temperature,
-      setting2.model.max_tokens || null,
-      chatHistory[0].history,
-    );
-
-    system = {
-      role: 'system',
-      bot: 1,
-      visible: true,
-      responseSQL: response,
-      onRefresh: prompt,
-      content: processResponse.choices[0].message.content,
-    };
-
-    await this.updateConversationHistory(id_user, currentChatId, [system]);
-
-    chatHistory = await this.historyService.loadData(currentChatId);
-
-    //// console.log(currentChatId, conversation);
-
-    return {
-      message: 'Success',
-      responseIA: processResponse.choices[0].message.content,
-      querySQL: extractedSql,
-      responseSQL: response,
-      history: chatHistory[0].history,
-      prompt,
-      id_chat: currentChatId,
-    };
   }
 }

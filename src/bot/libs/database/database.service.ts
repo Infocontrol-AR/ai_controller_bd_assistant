@@ -47,11 +47,14 @@ export class DatabaseService {
     params?: any[],
     useMemory = false,
   ): Promise<any> {
-    const dataSource = this.getDataSource(useMemory);
-
-    const result = await dataSource.query(query, params);
-
-    return result;
+    try {
+      const dataSource = this.getDataSource(useMemory);
+      const result = await dataSource.query(query, params);
+      return result;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
   }
 
   getRepository(entity: any, useMemory = false) {

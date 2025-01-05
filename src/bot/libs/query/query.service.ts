@@ -524,4 +524,28 @@ export class QueryService {
 
     return query.trim();
   }
+
+  public async toJSON(data: any): Promise<any> {
+    try {
+      const cleanData = data
+        .trim()
+        .replace(/^```(?:json)?\s*/i, '') 
+        .replace(/```$/, ''); 
+  
+      return JSON.parse(cleanData);
+    } catch (error) {
+
+      for (let i = 0; i < data.length; i++) {
+        try {
+          JSON.parse(data.substring(0, i + 1)); 
+        } catch (innerError) {
+          console.error(`Caracter problemático en posición ${i}: "${data[i]}"`);
+          break; 
+        }
+      }
+  
+      return false;
+    }
+  }
+
 }
