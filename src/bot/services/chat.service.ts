@@ -169,30 +169,6 @@ export class ChatService {
     return response;
   }
 
-  // documentos_rechazos: [
-  //   {
-  //   column: 'id_documentos',
-  //   type: 'int(11)',
-  //   isForeignKey: false,
-  //   referenced_table: undefined,
-  //   referenced_column: undefined,
-  //   },
-  //   {
-  //   column: 'fecha_rechazo',
-  //   type: 'datetime',
-  //   isForeignKey: false,
-  //   referenced_table: undefined,
-  //   referenced_column: undefined,
-  //   },
-  //   {
-  //   column: 'observacion_revision',
-  //   type: 'text',
-  //   isForeignKey: false,
-  //   referenced_table: undefined,
-  //   referenced_column: undefined,
-  //   },
-  //   ],
-
   private async seeders(): Promise<void> {
     try {
       const data = [
@@ -204,7 +180,7 @@ export class ChatService {
               model_name: 'gpt-4o',
               model_version: 'v1.0',
               max_tokens: 1500,
-              temperature: 0.5,
+              temperature: 0.4,
               label: 'querys-sql',
             },
           ],
@@ -215,6 +191,20 @@ export class ChatService {
           values: [
             {
               context_text: `{
+  "documentos_rechazos": [
+    {
+      "column": "id_documentos",
+      "type": "int(11)"
+    },
+    {
+      "column": "fecha_rechazo",
+      "type": "datetime"
+    },
+    {
+      "column": "observacion_revision",
+      "type": "text"
+    }
+  ],
   "documentos": [
     {
       "column": "id",
@@ -241,8 +231,7 @@ export class ChatService {
     },
     {
       "column": "modulo",
-      "type": "enum('datos_especificos','datos_generales','datos_impositivos','datos_laborales','socios','trabajadores','transporte_internacional','vehiculos','planes_pago','datos_hys','ordenes_compra')",
-      "comment": "usado para proveedores mas que nada"
+      "type": "enum('datos_especificos','datos_generales','datos_impositivos','datos_laborales','socios','trabajadores','transporte_internacional','vehiculos','planes_pago','datos_hys','ordenes_compra')"
     },
     {
       "column": "id_entidad",
@@ -250,13 +239,15 @@ export class ChatService {
     },
     {
       "column": "estado",
-      "type": "bigint(1)",
-      "comment": "ver tabla estados"
+      "type": "bigint(1)"
+    },
+    {
+      "column": "estado_doc",
+      "type": "bigint(1)"
     },
     {
       "column": "fecha_hora_modifica",
-      "type": "datetime",
-      "comment": "se actualiza por trigger"
+      "type": "datetime"
     },
     {
       "column": "id_empresas",
@@ -274,13 +265,11 @@ export class ChatService {
     },
     {
       "column": "tipo",
-      "type": "enum('general','laboral')",
-      "comment": "indica que tipo de documento es"
+      "type": "enum('general','laboral')"
     },
     {
       "column": "ayuda",
-      "type": "text",
-      "comment": "muestra ayuda sobre el manejo del documento"
+      "type": "text"
     },
     {
       "column": "nacionalidad",
@@ -346,8 +335,7 @@ export class ChatService {
     },
     {
       "column": "activa",
-      "type": "tinyint(1)",
-      "comment": "0:no; 1:si; si esta usando el sistema"
+      "type": "tinyint(1)"
     },
     {
       "column": "nacionalidad",
@@ -355,8 +343,7 @@ export class ChatService {
     },
     {
       "column": "id_grupos",
-      "type": "char(36)",
-      "comment": "si pertenece a algun grupo"
+      "type": "char(36)"
     },
     {
       "column": "fecha_hora_carga",
@@ -364,8 +351,7 @@ export class ChatService {
     },
     {
       "column": "eliminado",
-      "type": "tinyint(1)",
-      "comment": "0:no;1:si"
+      "type": "tinyint(1)"
     }
   ],
   "proveedores": [
@@ -447,90 +433,15 @@ export class ChatService {
     },
     {
       "column": "estado",
-      "type": "bigint(1)",
-      "comment": "ver tabla estados"
+      "type": "bigint(1)"
     },
     {
       "column": "anulado",
-      "type": "bigint(1)",
-      "comment": "0:no;1:si"
+      "type": "bigint(1)"
     },
     {
       "column": "fecha_hora_carga",
       "type": "timestamp"
-    },
-    {
-      "column": "nacionalidad",
-      "type": "enum('argentina','bolivia','brasil','canada','chile','china','colombia','dinamarca','ecuador','eeuu','francia','inglaterra','italia','japon','mexico','paraguay','peru','uruguay')"
-    }
-  ],
-  "socios": [
-    {
-      "column": "id_socios",
-      "type": "char(36)"
-    },
-    {
-      "column": "id_proveedores",
-      "type": "char(36)",
-      "isForeignKey": true,
-      "referenced_table": "proveedores",
-      "referenced_column": "id_proveedores"
-    },
-    {
-      "column": "id_socios_tipos",
-      "type": "int(1)"
-    },
-    {
-      "column": "apellido",
-      "type": "varchar(50)"
-    },
-    {
-      "column": "nombre",
-      "type": "varchar(50)"
-    },
-    {
-      "column": "dni",
-      "type": "char(20)"
-    },
-    {
-      "column": "cuil",
-      "type": "char(20)"
-    },
-    {
-      "column": "sexo",
-      "type": "bigint(1)",
-      "isNullable": true
-    },
-    {
-      "column": "estado",
-      "type": "bigint(1)"
-    },
-    {
-      "column": "estado_doc",
-      "type": "bigint(1)"
-    },
-    {
-      "column": "fecha_hora_modificacion",
-      "type": "timestamp",
-      "default": "CURRENT_TIMESTAMP"
-    },
-    {
-      "column": "anulado",
-      "type": "bigint(1)"
-    },
-    {
-      "column": "fecha_hora_carga",
-      "type": "datetime"
-    },
-    {
-      "column": "fecha_hora_baja",
-      "type": "datetime",
-      "isNullable": true
-    },
-    {
-      "column": "eliminado",
-      "type": "tinyint(1)",
-      "default": 0
     }
   ],
   "vehiculos": [
@@ -589,11 +500,44 @@ export class ChatService {
           operation: 'insert',
           values: [
             {
-              prompt_text: `SIEMPRE RESPONDERE EN FORMATO JSON. Verifica el historial para responder al usuario. Si hay coincidencia, responde como asistente amigable (con texto decorado: negrita, saltos de línea, listas, etc.): {"mode": 0, "response": "respuesta en lenguaje natural"}. Si no puedes responder, genera una consulta SQL para MariaDB: {"mode": 1, "response": "QUERY MARIA DB PURA"}. SOLO CONSULTAS 'SELECT' sobre registros activos.  
-
-              Criterios: Filtrar por 'id_empresas' para limitar resultados (empleados -> proveedores -> empresa). Estados de documentos ('estado', 'estado_doc'): 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado. Inicial: Sin registro en 'documentos'. Pendiente: 'estado = 3', 'estado_doc = 3'. Rechazado: 'estado = 2', 'estado_doc = 2'. Aprobado: 'estado = 4', 'estado_doc = 1' (si vigente). Deshecho: Ambos en '3'. Nuevo con aprobado vigente: 'estado = 4', 'estado_doc' según carga. Rechazos: Buscar en 'documentos' ('estado_doc = 2') o históricos en 'documentos_movimientos'. Empleados activos: ('eliminado = 0', 'baja_afip = 0', 'anulado = 0', 'fecha_ingreso != '0000-00-00'). Empresas activas: ('eliminado = 0', 'activa = 1'). Usar alias descriptivos en las consultas SQL para reflejar claramente el propósito de tablas y columnas. Limitar consultas a 6-10 columnas y un máximo de 10 filas.  
-
-              Respuestas negativas o no válidas: {"mode": 0, "response": "No puedo responder a esa pregunta.", "motivo": "Motivo en lenguaje natural"}. Responde exclusivamente en JSON válido para JSON.parse().`,
+              prompt_text: `SIEMPRE RESPONDER EN FORMATO JSON. Verifica el historial para intentar responder al usuario. Si hay coincidencia, responde como asistente amigable a modo de informe detallado con texto decorado (negrita, listas, titulos) en JSON:
+{
+    "mode": 0,
+    "response": "respuesta en lenguaje natural"
+}
+Si no puedes responder, genera una consulta MARIA DB para intentar responder al usuario:
+{
+    "mode": 1,
+    "response": "QUERY MARIA DB PURA"
+}
+SOLO CONSULTAS TIPO 'SELECT'.  
+Considera los siguientes puntos:
+Filtros a Aplicar:
+*Filtrar siempre por id_empresas (SOLO responderás preguntas de esta empresa) (empleados -> empleado -> id_proveedores -> proveedores -> proveedor -> id_empresas).
+*Estados de Documentos:
+- PENDIENTE: estado = 3 && estado_doc = 3.
+- RECHAZADO: estado = 2 && estado_doc = 2 (motivo de rechazo solo si es solicitado: documentos_rechazos -> observacion_revision).
+- APROBADO: estado = 4 && estado_doc = 1.
+- INCOMPLETO: Cuando no hay un id_documentos_tipo relacionado a un id_entidad y tipo_entidad en la tabla documentos.
+*Para acceder a los documentos, filtra usando el campo tipo_entidad. Esto te indicará la tabla correspondiente a consultar:
+    - empleado: consulta la tabla empleados y filtra por id_empleados = id_entidad.
+    - vehiculo: consulta la tabla vehiculos y filtra por id_vehiculos = id_entidad.
+    - proveedor: consulta la tabla proveedores y filtra por id_proveedores = id_entidad.
+    - socio: consulta la tabla socios y filtra por id_socios = id_entidad.
+*Usar LIKE y %% para nombres propios.
+*seleccionar empleados: eliminado = 0, anulado = 0 y id_proveedores. ¡IMPORTANTE!
+*seleccionar empresas: eliminado = 0, activa = 1. ¡IMPORTANTE!
+*proveedores === contratistas.
+*clientes === empresas.
+*USAR SIEMPRE ALIAS DESCRIPTIVOS de al menos 4 palabras o más para las tablas y columnas.
+*Modalidades: Considerar las modalidades "integral" (directo) o "renting" (indirecto).
+*Seleccionar LIMIT dinamico según lo veas necesarios para evitar demoras.
+Respuestas Negativas o No Lógicas: Si no puedes generar una consulta válida o la solicitud es errónea, responde con:
+{
+    "mode": 0,
+    "response": "No puedo responder a esa pregunta.",
+    "motivo": "Motivo del rechazo en lenguaje natural."
+}`,
               id_context: 1,
             },
           ],
@@ -616,8 +560,8 @@ export class ChatService {
             {
               model_name: 'gpt-4o',
               model_version: 'v1.0',
-              max_tokens: 800,
-              temperature: 0.5,
+              max_tokens: 1000,
+              temperature: 0.8,
               label: 'querys-sql-informe-nl',
             },
           ],
@@ -627,7 +571,7 @@ export class ChatService {
           operation: 'insert',
           values: [
             {
-              prompt_text: `A modo de asistente respondere a las preguntas del usuario (con texto decorado: negrita, saltos de linea, listas, etc.) utilizando todo el contexto no hare mención del mismo. Interpretaré los valores de "estado" como: 1 = INCOMPLETO, 2 = RECHAZADO, 3 = PENDIENTE, 4 = APROBADO.`,
+              prompt_text: `A modo de asistente respondere a las preguntas del usuario (con texto decorado: negrita, saltos de linea, listas, etc.) utilizando todo el contexto no hare mención del mismo. Si no puedo responder al usuario, no le dare detalles de porque no, simplemente di que no pudiste obtner respuesta a la pregunta o solicitud. Interpretaré los valores de "estado" como: 1 = INCOMPLETO, 2 = RECHAZADO, 3 = PENDIENTE, 4 = APROBADO.`,
             },
           ],
         },
@@ -754,7 +698,7 @@ export class ChatService {
       content: JSON.stringify(JSON.parse(setting1.context_text)),
     };
 
-    console.log(JSON.stringify(JSON.parse(setting1.context_text)));
+    // console.log(JSON.stringify(JSON.parse(setting1.context_text)));
 
     let contextId_empresas = {
       role: 'system',
@@ -959,6 +903,8 @@ export class ChatService {
             chatHistory[0].history,
           );
 
+          // console.log(processResponse)
+
           system = {
             role: 'system',
             bot: 1,
@@ -1026,7 +972,7 @@ export class ChatService {
           break;
       }
     } catch (error) {
-      console.log('soy un error');
+      console.log('soy un error', error);
 
       const system0 = {
         role: 'system',
