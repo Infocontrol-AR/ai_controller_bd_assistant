@@ -169,6 +169,30 @@ export class ChatService {
     return response;
   }
 
+  // documentos_rechazos: [
+  //   {
+  //   column: 'id_documentos',
+  //   type: 'int(11)',
+  //   isForeignKey: false,
+  //   referenced_table: undefined,
+  //   referenced_column: undefined,
+  //   },
+  //   {
+  //   column: 'fecha_rechazo',
+  //   type: 'datetime',
+  //   isForeignKey: false,
+  //   referenced_table: undefined,
+  //   referenced_column: undefined,
+  //   },
+  //   {
+  //   column: 'observacion_revision',
+  //   type: 'text',
+  //   isForeignKey: false,
+  //   referenced_table: undefined,
+  //   referenced_column: undefined,
+  //   },
+  //   ],
+
   private async seeders(): Promise<void> {
     try {
       const data = [
@@ -191,420 +215,372 @@ export class ChatService {
           values: [
             {
               context_text: `{
-              documentos_rechazos: [
-              {
-              column: 'id_documentos',
-              type: 'int(11)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'fecha_rechazo',
-              type: 'datetime',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'observacion_revision',
-              type: 'text',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              ],
-              empresas: [
-              {
-              column: 'id_empresas',
-              type: 'char(36)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'nombre',
-              type: 'varchar(200)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'razon_social_cliente',
-              type: 'varchar(200)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'cuit_cliente',
-              type: 'char(200)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'activa',
-              type: 'tinyint(1)',
-              comment: '0:no; 1:si; si esta usando el sistema',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'nacionalidad',
-              type: "enum('argentina','chilena','bolivia','brasil','colombia','ecuador','paraguay','peru','uruguay','venezuela','canada','suecia','singapur','mexico')",
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'id_grupos',
-              type: 'char(36)',
-              comment: 'si pertenece a algun grupo',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'fecha_hora_carga',
-              type: 'timestamp',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'eliminado',
-              type: 'tinyint(1)',
-              comment: '0:no;1:si',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              ],
-              proveedores: [
-              {
-              column: 'id_proveedores',
-              type: 'char(36)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'cuit',
-              type: 'char(20)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'id_empresas',
-              type: 'char(36)',
-              isForeignKey: true,
-              referenced_table: 'empresas',
-              referenced_column: 'id_empresas',
-              },
-              {
-              column: 'nombre_razon_social',
-              type: 'varchar(255)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'nombre_comercial',
-              type: 'varchar(255)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'domicilio_legal',
-              type: 'varchar(255)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'email',
-              type: 'varchar(255)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'fecha_hora_carga',
-              type: 'timestamp',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'nacionalidad',
-              type: "enum('alemania','argentina','australia','bolivia','brasil','canada','chilena','china','colombiana','costa_rica','dinamarca','ee_uu','ecuador','el_salvador','espania','francia','guyana','guatemala','honduras','inglaterra','italia','japon','mexico','nicaragua','paises_bajos','paraguay','peru','rumania','singapur','suecia','suiza','surinam','uruguay','venezuela','taiwan')",
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              ],
-              empleados: [
-              {
-              column: 'id_empleados',
-              type: 'char(36)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'id_proveedores',
-              type: 'char(36)',
-              isForeignKey: true,
-              referenced_table: 'proveedores',
-              referenced_column: 'id_proveedores',
-              },
-              {
-              column: 'apellido',
-              type: 'varchar(50)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'nombre',
-              type: 'varchar(50)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'dni',
-              type: 'char(20)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'cuil',
-              type: 'char(20)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'domicilio',
-              type: 'varchar(255)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'fecha_ingreso',
-              type: 'date',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'estado',
-              type: 'bigint(1)',
-              comment: 'ver tabla estados',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'anulado',
-              type: 'bigint(1)',
-              comment: '0:no;1:si',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'eliminado',
-              type: 'tinyint(1)',
-              comment: '0:no; 1:si; indica si fue eliminado',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'baja_afip',
-              type: 'tinyint(1)',
-              comment: '0:no;1:si; indica si se dio de baja definitiva',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'id_motivos_baja_afip',
-              type: 'int(1)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'fecha_baja_afip',
-              type: 'date',
-              comment: 'para calcular las 48hs ',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'sexo',
-              type: 'bigint(1)',
-              comment: '1:M;2:F',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'fecha_nacimiento',
-              type: 'date',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              ],
-              documentos: [
-              {
-              column: 'id',
-              type: 'int(1)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'id_documentos',
-              type: 'char(36)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'fecha_hora_creacion',
-              type: 'timestamp',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'id_documentos_tipos',
-              type: 'char(36)',
-              isForeignKey: true,
-              referenced_table: 'documentos_tipos',
-              referenced_column: 'id_documentos_tipos',
-              },
-              {
-              column: 'tipo_entidad',
-              type: "enum('empleado','vehiculo','proveedor','socio','planes_pago','ordenes_compra')",
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'modulo',
-              type: "enum('datos_especificos','datos_generales','datos_impositivos','datos_laborales','socios','trabajadores','transporte_internacional','vehiculos','planes_pago','datos_hys','ordenes_compra')",
-              comment: 'usado para proveedores mas que nada',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'id_entidad',
-              type: 'char(36)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'estado',
-              type: 'bigint(1)',
-              comment: 'ver tabla estados',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'fecha_hora_modifica',
-              type: 'datetime',
-              comment: 'se actualiza por trigger',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'id_empresas',
-              type: 'char(36)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              ],
-              documentos_tipos: [
-              {
-              column: 'id_documentos_tipos',
-              type: 'char(36)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'nombre',
-              type: 'varchar(200)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'tipo',
-              type: "enum('general','laboral')",
-              comment: 'indica que tipo de documento es',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'ayuda',
-              type: 'text',
-              comment: 'muestra ayuda sobre el manejo del documento',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'nacionalidad',
-              type: "enum('argentina','chilena','argentina_chilena')",
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              ],
-              empresas_grupos: [
-              {
-              column: 'id_grupos',
-              type: 'char(36)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'nombre',
-              type: 'varchar(50)',
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              {
-              column: 'tipo_cliente',
-              type: "enum('directo','indirecto')",
-              isForeignKey: false,
-              referenced_table: undefined,
-              referenced_column: undefined,
-              },
-              ],
-              }`,
+  "documentos": [
+    {
+      "column": "id",
+      "type": "int(1)"
+    },
+    {
+      "column": "id_documentos",
+      "type": "char(36)"
+    },
+    {
+      "column": "fecha_hora_creacion",
+      "type": "timestamp"
+    },
+    {
+      "column": "id_documentos_tipos",
+      "type": "char(36)",
+      "isForeignKey": true,
+      "referenced_table": "documentos_tipos",
+      "referenced_column": "id_documentos_tipos"
+    },
+    {
+      "column": "tipo_entidad",
+      "type": "enum('empleado','vehiculo','proveedor','socio','planes_pago','ordenes_compra')"
+    },
+    {
+      "column": "modulo",
+      "type": "enum('datos_especificos','datos_generales','datos_impositivos','datos_laborales','socios','trabajadores','transporte_internacional','vehiculos','planes_pago','datos_hys','ordenes_compra')",
+      "comment": "usado para proveedores mas que nada"
+    },
+    {
+      "column": "id_entidad",
+      "type": "char(36)"
+    },
+    {
+      "column": "estado",
+      "type": "bigint(1)",
+      "comment": "ver tabla estados"
+    },
+    {
+      "column": "fecha_hora_modifica",
+      "type": "datetime",
+      "comment": "se actualiza por trigger"
+    },
+    {
+      "column": "id_empresas",
+      "type": "char(36)"
+    }
+  ],
+  "documentos_tipos": [
+    {
+      "column": "id_documentos_tipos",
+      "type": "char(36)"
+    },
+    {
+      "column": "nombre",
+      "type": "varchar(200)"
+    },
+    {
+      "column": "tipo",
+      "type": "enum('general','laboral')",
+      "comment": "indica que tipo de documento es"
+    },
+    {
+      "column": "ayuda",
+      "type": "text",
+      "comment": "muestra ayuda sobre el manejo del documento"
+    },
+    {
+      "column": "nacionalidad",
+      "type": "enum('argentina','chilena','argentina_chilena')"
+    }
+  ],
+  "documentos_movimientos": [
+    {
+      "column": "tipo_cliente",
+      "type": "enum('directo','indirecto')"
+    },
+    {
+      "column": "id",
+      "type": "int(10)"
+    },
+    {
+      "column": "id_documentos",
+      "type": "char(36)",
+      "isForeignKey": true,
+      "referenced_table": "documentos",
+      "referenced_column": "id"
+    },
+    {
+      "column": "estado",
+      "type": "bigint(1)"
+    },
+    {
+      "column": "fecha_hora",
+      "type": "timestamp"
+    },
+    {
+      "column": "id_usuarios",
+      "type": "char(36)",
+      "isForeignKey": true,
+      "referenced_table": "usuarios",
+      "referenced_column": "id"
+    },
+    {
+      "column": "milisegundos_control",
+      "type": "int(10)"
+    },
+    {
+      "column": "control_automatico_estado",
+      "type": "int(1)"
+    }
+  ],
+  "empresas": [
+    {
+      "column": "id_empresas",
+      "type": "char(36)"
+    },
+    {
+      "column": "nombre",
+      "type": "varchar(200)"
+    },
+    {
+      "column": "razon_social_cliente",
+      "type": "varchar(200)"
+    },
+    {
+      "column": "cuit_cliente",
+      "type": "char(200)"
+    },
+    {
+      "column": "activa",
+      "type": "tinyint(1)",
+      "comment": "0:no; 1:si; si esta usando el sistema"
+    },
+    {
+      "column": "nacionalidad",
+      "type": "enum('argentina','chilena','bolivia','brasil','colombia','ecuador','paraguay','peru','uruguay','venezuela','canada','suecia','singapur','mexico')"
+    },
+    {
+      "column": "id_grupos",
+      "type": "char(36)",
+      "comment": "si pertenece a algun grupo"
+    },
+    {
+      "column": "fecha_hora_carga",
+      "type": "timestamp"
+    },
+    {
+      "column": "eliminado",
+      "type": "tinyint(1)",
+      "comment": "0:no;1:si"
+    }
+  ],
+  "proveedores": [
+    {
+      "column": "id_proveedores",
+      "type": "char(36)"
+    },
+    {
+      "column": "cuit",
+      "type": "char(20)"
+    },
+    {
+      "column": "id_empresas",
+      "type": "char(36)",
+      "isForeignKey": true,
+      "referenced_table": "empresas",
+      "referenced_column": "id_empresas"
+    },
+    {
+      "column": "nombre_razon_social",
+      "type": "varchar(255)"
+    },
+    {
+      "column": "nombre_comercial",
+      "type": "varchar(255)"
+    },
+    {
+      "column": "domicilio_legal",
+      "type": "varchar(255)"
+    },
+    {
+      "column": "email",
+      "type": "varchar(255)"
+    },
+    {
+      "column": "fecha_hora_carga",
+      "type": "timestamp"
+    },
+    {
+      "column": "nacionalidad",
+      "type": "enum('alemania','argentina','australia','bolivia','brasil','canada','chilena','china','colombiana','costa_rica','dinamarca','ee_uu','ecuador','el_salvador','espania','francia','guyana','guatemala','honduras','inglaterra','italia','japon','mexico','nicaragua','paises_bajos','paraguay','peru','rumania','singapur','suecia','suiza','surinam','uruguay','venezuela','taiwan')"
+    }
+  ],
+  "empleados": [
+    {
+      "column": "id_empleados",
+      "type": "char(36)"
+    },
+    {
+      "column": "id_proveedores",
+      "type": "char(36)",
+      "isForeignKey": true,
+      "referenced_table": "proveedores",
+      "referenced_column": "id_proveedores"
+    },
+    {
+      "column": "apellido",
+      "type": "varchar(50)"
+    },
+    {
+      "column": "nombre",
+      "type": "varchar(50)"
+    },
+    {
+      "column": "dni",
+      "type": "char(20)"
+    },
+    {
+      "column": "cuil",
+      "type": "char(20)"
+    },
+    {
+      "column": "domicilio",
+      "type": "varchar(255)"
+    },
+    {
+      "column": "fecha_ingreso",
+      "type": "date"
+    },
+    {
+      "column": "estado",
+      "type": "bigint(1)",
+      "comment": "ver tabla estados"
+    },
+    {
+      "column": "anulado",
+      "type": "bigint(1)",
+      "comment": "0:no;1:si"
+    },
+    {
+      "column": "fecha_hora_carga",
+      "type": "timestamp"
+    },
+    {
+      "column": "nacionalidad",
+      "type": "enum('argentina','bolivia','brasil','canada','chile','china','colombia','dinamarca','ecuador','eeuu','francia','inglaterra','italia','japon','mexico','paraguay','peru','uruguay')"
+    }
+  ],
+  "socios": [
+    {
+      "column": "id_socios",
+      "type": "char(36)"
+    },
+    {
+      "column": "id_proveedores",
+      "type": "char(36)",
+      "isForeignKey": true,
+      "referenced_table": "proveedores",
+      "referenced_column": "id_proveedores"
+    },
+    {
+      "column": "id_socios_tipos",
+      "type": "int(1)"
+    },
+    {
+      "column": "apellido",
+      "type": "varchar(50)"
+    },
+    {
+      "column": "nombre",
+      "type": "varchar(50)"
+    },
+    {
+      "column": "dni",
+      "type": "char(20)"
+    },
+    {
+      "column": "cuil",
+      "type": "char(20)"
+    },
+    {
+      "column": "sexo",
+      "type": "bigint(1)",
+      "isNullable": true
+    },
+    {
+      "column": "estado",
+      "type": "bigint(1)"
+    },
+    {
+      "column": "estado_doc",
+      "type": "bigint(1)"
+    },
+    {
+      "column": "fecha_hora_modificacion",
+      "type": "timestamp",
+      "default": "CURRENT_TIMESTAMP"
+    },
+    {
+      "column": "anulado",
+      "type": "bigint(1)"
+    },
+    {
+      "column": "fecha_hora_carga",
+      "type": "datetime"
+    },
+    {
+      "column": "fecha_hora_baja",
+      "type": "datetime",
+      "isNullable": true
+    },
+    {
+      "column": "eliminado",
+      "type": "tinyint(1)",
+      "default": 0
+    }
+  ],
+  "vehiculos": [
+    {
+      "column": "id_vehiculos",
+      "type": "char(36)"
+    },
+    {
+      "column": "id_proveedores",
+      "type": "char(36)",
+      "isForeignKey": true,
+      "referenced_table": "proveedores",
+      "referenced_column": "id_proveedores"
+    },
+    {
+      "column": "tipo",
+      "type": "enum('cargas_generales','cargas_pasajeros','maquinarias','motocicletas','implemento','instrumento','generico')"
+    },
+    {
+      "column": "estado",
+      "type": "bigint(1)"
+    },
+    {
+      "column": "estado_doc",
+      "type": "bigint(1)"
+    },
+    {
+      "column": "fecha_hora_modificacion",
+      "type": "timestamp",
+      "default": "CURRENT_TIMESTAMP"
+    },
+    {
+      "column": "anulado",
+      "type": "bigint(1)"
+    },
+    {
+      "column": "fecha_hora_carga",
+      "type": "datetime"
+    },
+    {
+      "column": "fecha_hora_baja",
+      "type": "datetime",
+      "isNullable": true
+    },
+    {
+      "column": "eliminado",
+      "type": "tinyint(1)"
+    }
+  ]
+}`,
             },
           ],
         },
@@ -613,7 +589,11 @@ export class ChatService {
           operation: 'insert',
           values: [
             {
-              prompt_text: `SIEMPRE RESPONDERE EN FORMATO JSON. Verifica el historial para intentar responder al usuario. Si hay coincidencia, responde como asistente amigable en JSON: {"mode": 0, "response": "respuesta en lenguaje natural"}. Si no puedes responder genera una consulta MARIA DB para intentar responder al usuario {"mode": 1, "response": "QUERY MARIA DB PURA"}, SOLO CONSULTAS TIPO 'SELECT' puedes tomar en cuenta: filtrar por 'id_empresas' (SOLO RESPONDERAS PREGUNTAS DE ESTA EMPRESA) (para empleados: empleado -> id_proveedores -> proveedor -> id_empresas), usar LIKE y %% para nombres, incluir solo registros activos: empleados (eliminado = 0, baja_afip = 0, anulado = 0, fecha_ingreso != '0000-00-00'), empresas (eliminado = 0, activa = 1). Basarse en 'tipo_entidad' y 'id_entidad': empleados ('id_empleados'), vehículos ('id_vehiculos'), proveedores ('id_proveedores'), socios ('id_socios'). Estados de documentos: 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado (documentos -> documento -> estado). Motivo de rechazo en 'observacion_revision' de 'documentos_rechazos'. Consultas: entre 6-10 columnas, máximo 10 filas, considerar modalidades: "integral" (directo) o "renting" (indirecto). Responde exclusivamente en JSON válido para JSON.parse(). Respuestas negativas o no lógicas: {"mode": 0, "response": "No puedo responder a esa pregunta.", "motivo": "Motivo del rechazo en lenguaje natural"}.`,
+              prompt_text: `SIEMPRE RESPONDERE EN FORMATO JSON. Verifica el historial para responder al usuario. Si hay coincidencia, responde como asistente amigable (con texto decorado: negrita, saltos de línea, listas, etc.): {"mode": 0, "response": "respuesta en lenguaje natural"}. Si no puedes responder, genera una consulta SQL para MariaDB: {"mode": 1, "response": "QUERY MARIA DB PURA"}. SOLO CONSULTAS 'SELECT' sobre registros activos.  
+
+              Criterios: Filtrar por 'id_empresas' para limitar resultados (empleados -> proveedores -> empresa). Estados de documentos ('estado', 'estado_doc'): 1 = Incompleto, 2 = Rechazado, 3 = Pendiente, 4 = Aprobado. Inicial: Sin registro en 'documentos'. Pendiente: 'estado = 3', 'estado_doc = 3'. Rechazado: 'estado = 2', 'estado_doc = 2'. Aprobado: 'estado = 4', 'estado_doc = 1' (si vigente). Deshecho: Ambos en '3'. Nuevo con aprobado vigente: 'estado = 4', 'estado_doc' según carga. Rechazos: Buscar en 'documentos' ('estado_doc = 2') o históricos en 'documentos_movimientos'. Empleados activos: ('eliminado = 0', 'baja_afip = 0', 'anulado = 0', 'fecha_ingreso != '0000-00-00'). Empresas activas: ('eliminado = 0', 'activa = 1'). Usar alias descriptivos en las consultas SQL para reflejar claramente el propósito de tablas y columnas. Limitar consultas a 6-10 columnas y un máximo de 10 filas.  
+
+              Respuestas negativas o no válidas: {"mode": 0, "response": "No puedo responder a esa pregunta.", "motivo": "Motivo en lenguaje natural"}. Responde exclusivamente en JSON válido para JSON.parse().`,
               id_context: 1,
             },
           ],
@@ -771,8 +751,10 @@ export class ChatService {
     let systemC = {
       role: 'system',
       bot: 0,
-      content: setting1.context_text,
+      content: JSON.stringify(JSON.parse(setting1.context_text)),
     };
+
+    console.log(JSON.stringify(JSON.parse(setting1.context_text)));
 
     let contextId_empresas = {
       role: 'system',
